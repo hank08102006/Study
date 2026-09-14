@@ -752,12 +752,12 @@ function syncAi(){const ok=chain().length>0;$("aiBtns").hidden=!ok;$("aiOff").hi
 /* ---------- 多家 AI 與自動備援 ---------- */
 const PROV={
   claude:{label:"Claude（在 Claude 裡開啟時）",kind:"claude",note:"用你的 Claude 額度"},
-  gemini:{label:"Google Gemini",kind:"gemini",base:"https://generativelanguage.googleapis.com/v1beta",model:"gemini-2.5-flash",keyUrl:"https://aistudio.google.com/apikey",note:"有免費額度",free:true},
-  groq:{label:"Groq",kind:"openai",base:"https://api.groq.com/openai/v1",model:"llama-3.3-70b-versatile",keyUrl:"https://console.groq.com/keys",note:"有免費額度・速度快",free:true},
-  openrouter:{label:"OpenRouter",kind:"openai",base:"https://openrouter.ai/api/v1",model:"",keyUrl:"https://openrouter.ai/keys",note:"一把金鑰用多家模型，有免費模型",free:true},
+  gemini:{label:"Google Gemini",kind:"gemini",base:"https://generativelanguage.googleapis.com/v1beta",model:"gemini-2.5-flash",keyUrl:"https://aistudio.google.com/apikey",note:"免費（要申請金鑰）",free:true},
+  groq:{label:"Groq",kind:"openai",base:"https://api.groq.com/openai/v1",model:"llama-3.3-70b-versatile",keyUrl:"https://console.groq.com/keys",note:"免費（要申請金鑰）・速度快",free:true},
+  openrouter:{label:"OpenRouter",kind:"openai",base:"https://openrouter.ai/api/v1",model:"",keyUrl:"https://openrouter.ai/keys",note:"有免費模型（要申請金鑰）",free:true},
   openai:{label:"OpenAI（ChatGPT）",kind:"openai",base:"https://api.openai.com/v1",model:"gpt-4o-mini",keyUrl:"https://platform.openai.com/api-keys",note:"依用量付費"},
   anthropic:{label:"Anthropic API（Claude）",kind:"anthropic",base:"https://api.anthropic.com/v1",model:"claude-haiku-4-5-20251001",keyUrl:"https://console.anthropic.com/settings/keys",note:"依用量付費，不佔 Claude 訂閱額度"},
-  ollama:{label:"Ollama（本機模型）",kind:"openai",base:"http://localhost:11434/v1",model:"llama3.1",noKey:true,note:"免費・不用網路，需在電腦安裝 Ollama",free:true},
+  ollama:{label:"Ollama（本機模型）",kind:"openai",base:"http://localhost:11434/v1",model:"llama3.1",noKey:true,note:"免費・只能在裝了 Ollama 的電腦上用",free:true},
   custom:{label:"其他 OpenAI 相容服務",kind:"openai",base:"",model:"",note:"自填網址"}
 };
 const AI_KEY="zixue-ai-v1";
@@ -769,6 +769,7 @@ function ready(id){
   const P=PROV[id],c=aiCfg.p[id]||{};
   if(!c.on)return false;
   if(id==="claude")return !!sample;
+  if(c.lastErrCode==="auth")return false;
   return !!((c.base||P.base)&&(c.model||P.model)&&(P.noKey||c.key));
 }
 const chain=()=>aiCfg.order.filter(ready);
@@ -782,7 +783,14 @@ const HIDE=["not_granted","sampling_disabled","not_declared","capability_disable
 function errText(e){
   if(typeof e==="string")return ERR[e]||"連線中斷";
   if(e.code==="all_failed")return "所有 AI 都失敗了 —— "+e.fails.join("；");
-  return ERR[e.code]||"連線中斷，再試一次。";
+  return (ERR[e.code]||"連線中斷，再試一次。")+(e.detail?`（${e.detail}）`:"");
+}
+async function httpErr(res){
+  const s=res.status;let detail="";
+  try{const t=await res.text();try{const j=JSON.parse(t);detail=j.error?.message||j.message||(typeof j.error==="string"?j.error:"")||t}catch{detail=t}}catch{}
+  detail=String(detail).replace(/\s+/g," ").slice(0,160);
+  const auth=s===401||s===403||/api[ _-]?key/i.test(detail);
+  return{code:auth?"auth":s===429?"quota":s>=500?"server":"bad_request",status:s,detail};
 }
 
 async function readSSE(res,onData){
@@ -814,7 +822,7 @@ async function callHttp(id,turns,o={}){
   let res;
   try{res=await fetch(url,{method:"POST",headers,body:JSON.stringify(body),signal:o.signal})}
   catch{throw{code:o.signal?.aborted?"cancelled":"network"}}
-  if(!res.ok){const s=res.status;throw{code:s===401||s===403?"auth":s===429?"quota":s>=500?"server":"bad_request"}}
+  if(!res.ok)throw await httpErr(res);
   let text="";
   try{await readSSE(res,d=>{const t=pick(d);if(t){text+=t;o.onText?.({text})}})}
   catch{throw{code:o.signal?.aborted?"cancelled":"network",text:text||undefined}}
@@ -832,12 +840,14 @@ async function ask(turns,o={}){
       let r;
       if(id==="claude"){const opts={signal:o.signal,onText:o.onText};if(o.nocache)opts.cache=false;r=await sample(turns,opts)}
       else r=await callHttp(id,turns,o);
+      if(id!=="claude"&&pc(id).lastErr){delete pc(id).lastErr;delete pc(id).lastErrCode;pc(id).lastOk=Date.now();saveAi()}
       return{text:r.text,truncated:!!r.truncated,provider:PROV[id].label};
     }catch(e){
       if(e.code==="cancelled")throw e;
       if(e.text)throw{...e,provider:PROV[id].label};
       if(id==="claude"&&HIDE.includes(e.code)){sample=null;syncAi()}
-      fails.push(`${PROV[id].label.replace(/（.*）/,"")}：${errText(e.code)}`);
+      fails.push(`${PROV[id].label.replace(/（.*）/,"")}：${errText(e)}`);
+      if(id!=="claude"){pc(id).lastErr=errText(e);pc(id).lastErrCode=e.code;delete pc(id).lastOk;saveAi()}
     }
   }
   throw{code:"all_failed",fails};
@@ -851,27 +861,81 @@ function parseJSON(t){
 }
 
 /* ---------- AI 設定視窗 ---------- */
+/* 自動挑模型：各家常下架舊模型，所以每次都從 /models 清單挑目前存在的 */
+function cmpVer(a,b){const x=(String(a).match(/\d+(?:\.\d+)?/g)||["0"]).map(Number),y=(String(b).match(/\d+(?:\.\d+)?/g)||["0"]).map(Number);
+  for(let i=0;i<Math.max(x.length,y.length);i++){const d=(y[i]||0)-(x[i]||0);if(d)return d}return 0}
+async function listModels(id){
+  const{P,c,base}=endpoint(id);let res;
+  try{res=await fetch(base+(P.kind==="gemini"?"/models?pageSize=200":"/models"),{headers:authHeaders(P,c)})}catch{throw{code:"network"}}
+  if(!res.ok)throw await httpErr(res);
+  const j=await res.json();
+  if(P.kind==="gemini")return(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>({id:m.name.replace(/^models\//,"")}));
+  return(j.data||[]).map(m=>({id:String(m.id),ctx:+m.context_length||0}));
+}
+const SKIP_MODEL=/(embed|whisper|tts|audio|image|guard|safety|moderation|transcri|realtime|search|dall-?e|sora|codex|-vl\b|vl:|ocr)/i;
+function rankModels(id,list){
+  const ms=list.filter(m=>!SKIP_MODEL.test(m.id));
+  const by=(...res)=>res.flatMap(re=>ms.filter(m=>re.test(m.id)).sort((a,b)=>cmpVer(a.id,b.id)));
+  let out;
+  if(id==="gemini")out=by(/^gemini-[\d.]+-flash$/,/^gemini-[\d.]+-flash(?!.*lite)/,/flash/,/gemini/);
+  else if(id==="groq")out=by(/gpt-oss-120b/,/llama-[\d.]+-70b/,/qwen/,/gpt-oss/,/llama/);
+  else if(id==="openrouter"){const free=ms.filter(m=>/:free$/.test(m.id)).sort((a,b)=>b.ctx-a.ctx);
+    const good=/(deepseek|qwen|llama|gemma|mistral|gpt-oss|glm|kimi|nemotron)/i;out=[...free.filter(m=>good.test(m.id)),...free]}
+  else if(id==="openai")out=by(/^gpt-[\d.]+-mini$/,/^gpt-4o-mini$/,/^gpt-[\d.]+$/);
+  else if(id==="anthropic")out=by(/haiku/,/sonnet/);
+  else out=ms;
+  return[...new Set(out.map(m=>m.id))];
+}
+async function autoSetup(id,st){
+  const P=PROV[id],c=pc(id);
+  const say=(cls,t)=>{if(st){st.className="prov-status "+cls;st.textContent=t}};
+  if(!P.noKey&&!c.key){say("bad","先貼上金鑰");throw{code:"auth"}}
+  c.on=true;saveAi();say("","確認金鑰、挑選模型中…");
+  let cands=[];
+  try{
+    const list=await listModels(id);cands=rankModels(id,list);
+    if(c.model&&list.some(m=>m.id===c.model))cands=[c.model,...cands.filter(x=>x!==c.model)];
+  }catch(e){if(e.code==="auth"||e.code==="network"||e.code==="quota"){c.lastErr=errText(e);c.lastErrCode=e.code;delete c.lastOk;saveAi();say("bad","✗ "+c.lastErr);throw e}}
+  if(!cands.length)cands=[c.model||P.model].filter(Boolean);
+  if(!cands.length){const e={code:"bad_request",detail:"找不到可用的模型"};c.lastErr=errText(e);saveAi();say("bad","✗ "+c.lastErr);throw e}
+  let last;
+  for(const m of cands.slice(0,4)){
+    c.model=m;saveAi();say("",`測試 ${m} 中…`);
+    try{
+      const r=await callHttp(id,[{role:"user",content:"請用一句繁體中文（15 字內）打招呼。"}]);
+      c.lastOk=Date.now();delete c.lastErr;delete c.lastErrCode;saveAi();say("ok",`✓ 可以用了（${m}）：「${r.text.trim().slice(0,24)}」`);return m;
+    }catch(e){last=e;if(e.code==="auth")break}
+  }
+  c.lastErr=errText(last);c.lastErrCode=last?.code;delete c.lastOk;saveAi();say("bad","✗ "+c.lastErr);
+  throw last;
+}
+function provState(id){
+  const P=PROV[id],c=pc(id);
+  if(id==="claude")return sample?["ok","✓ 可以用"]:["","只有在 Claude 裡開啟那個網址時才能用"];
+  if(!P.noKey&&!c.key)return["bad","還沒有金鑰：按「申請金鑰」→ 複製 → 貼到下面 → 按「自動設定」"];
+  if(c.lastErr)return["bad","✗ "+c.lastErr];
+  if(c.lastOk)return["ok",`✓ 可以用了（${c.model||P.model}）`];
+  return["","已填金鑰，按「自動設定」確認能用"];
+}
 function renderProvs(){
   const inClaude=!!window.claude;
   $("aiEnvNote").hidden=!inClaude;
   $("provs").innerHTML=aiCfg.order.map((id,i)=>{
-    const P=PROV[id],c=pc(id),on=!!c.on;
-    const fields=id==="claude"
-      ?`<div class="full prov-status ${sample?"ok":""}">${sample?"目前可用":"目前不可用：只有在 Claude 裡開這一頁時才能用"}</div>`
-      :`${P.noKey?"":`<div class="field"><label class="label" for="k-${id}">API 金鑰</label><input id="k-${id}" data-k="key" data-id="${id}" type="password" autocomplete="off" value="${esc(c.key||"")}" placeholder="貼上金鑰"></div>`}
-        <div class="field"><label class="label" for="m-${id}">模型</label><input id="m-${id}" data-k="model" data-id="${id}" list="ml-${id}" value="${esc(c.model||"")}" placeholder="${esc(P.model||"按「載入模型清單」挑一個")}"><datalist id="ml-${id}"></datalist></div>
+    const P=PROV[id],c=pc(id),on=!!c.on,[cls,msg]=provState(id);
+    const fields=id==="claude"?"":`${P.noKey?"":`<div class="field"><label class="label" for="k-${id}">API 金鑰</label><input id="k-${id}" data-k="key" data-id="${id}" type="password" autocomplete="off" value="${esc(c.key||"")}" placeholder="貼上金鑰"></div>`}
+        <div class="field"><label class="label" for="m-${id}">模型（自動設定會幫你挑）</label><input id="m-${id}" data-k="model" data-id="${id}" list="ml-${id}" value="${esc(c.model||"")}" placeholder="${esc(P.model||"按「自動設定」")}"><datalist id="ml-${id}"></datalist></div>
         ${(id==="custom"||id==="ollama")?`<div class="field full"><label class="label" for="b-${id}">服務網址</label><input id="b-${id}" data-k="base" data-id="${id}" value="${esc(c.base||"")}" placeholder="${esc(P.base||"https://…/v1")}"></div>`:""}
-        <div class="full row">${P.keyUrl?`<a class="btn ghost sm" href="${P.keyUrl}" target="_blank" rel="noopener" style="font-weight:600;">${id==="gemini"?"🌐 開啟 Google AI Studio":"取得金鑰"} ↗</a>`:""}
-          <button class="btn ghost sm" type="button" data-models="${id}">載入模型清單</button>
-          <button class="btn ghost sm" type="button" data-test="${id}">測試</button>
-          <span class="prov-status" id="st-${id}"></span></div>`;
+        <div class="full row">${P.keyUrl?`<a class="btn ghost sm" href="${P.keyUrl}" target="_blank" rel="noopener">申請金鑰 ↗</a>`:""}
+          <button class="btn sm hl" type="button" data-auto="${id}">自動設定</button>
+          <button class="btn ghost sm" type="button" data-models="${id}">自己挑模型</button></div>`;
     return `<li class="prov ${on?"":"off"}">
-      <div class="prov-top"><span class="rank">${on?i+1:""}</span><input class="check" type="checkbox" id="on-${id}" data-on="${id}" ${on?"checked":""}><label for="on-${id}">${esc(P.label)}</label><span class="tag ${P.free?"free":""}">${esc(P.note)}</span>
+      <div class="prov-top"><span class="rank">${on&&ready(id)?chain().indexOf(id)+1:""}</span><input class="check" type="checkbox" id="on-${id}" data-on="${id}" ${on?"checked":""}><label for="on-${id}">${esc(P.label)}</label><span class="tag ${P.free?"free":""}">${esc(P.note)}</span>
         <span class="ord"><button type="button" data-mv="${id}" data-d="-1" ${i===0?"disabled":""} aria-label="往前">↑</button><button type="button" data-mv="${id}" data-d="1" ${i===aiCfg.order.length-1?"disabled":""} aria-label="往後">↓</button></span></div>
+      ${on||c.key||id==="claude"?`<div class="prov-status ${cls}" id="st-${id}" style="padding-left:30px">${esc(msg)}</div>`:""}
       <div class="prov-fields">${fields}</div></li>`;
   }).join("");
   const ch=chain().map(id=>PROV[id].label.replace(/（.*）/,""));
-  $("aiSummary").textContent=ch.length?"使用順序："+ch.join(" → "):"尚無可用的 AI";
+  $("aiSummary").textContent=ch.length?"使用順序："+ch.join(" → "):"尚無可用的 AI：勾選一家 → 申請金鑰 → 貼上 → 自動設定";
 }
 function openAiDlg(){renderProvs();$("ytKey").value=aiCfg.yt||"";$("qSt").textContent=pc("gemini").key?"Gemini 已設定過；貼上新金鑰可以重新設定。":"";$("qSt").className="prov-status";$("aiDlg").showModal();$("qKey").focus()}
 $("aiBtn").onclick=openAiDlg;
@@ -879,25 +943,14 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-openai]"))openA
 $("qGo").onclick=async()=>{
   const key=$("qKey").value.trim(),st=$("qSt"),btn=$("qGo");
   if(!key){st.className="prov-status bad";st.textContent="先貼上金鑰";return}
-  const c=pc("gemini");c.key=key;c.on=true;
+  const c=pc("gemini");c.key=key;delete c.lastOk;delete c.lastErr;delete c.lastErrCode;
   aiCfg.order=["gemini",...aiCfg.order.filter(x=>x!=="gemini")];saveAi();
-  btn.disabled=true;st.className="prov-status";st.textContent="確認金鑰、挑選模型中…";
-  try{
-    const res=await fetch(PROV.gemini.base+"/models?pageSize=200",{headers:{"x-goog-api-key":key}});
-    if(!res.ok)throw{code:res.status===429?"quota":res.status>=500?"server":"auth"};
-    const names=((await res.json()).models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>m.name.replace(/^models\//,""));
-    const ver=n=>parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/)||[])[1]||0);
-    const stable=names.filter(n=>/^gemini-[\d.]+-flash$/.test(n)).sort((a,b)=>ver(b)-ver(a));
-    const other=names.filter(n=>/flash/.test(n)&&!/(image|tts|live|audio|embed|lite|exp|thinking)/.test(n)).sort((a,b)=>ver(b)-ver(a));
-    if(stable[0]||other[0])c.model=stable[0]||other[0];
-    saveAi();st.textContent=`測試 ${c.model||PROV.gemini.model} 中…`;
-    const r=await callHttp("gemini",[{role:"user",content:"請用一句繁體中文（15 字內）打招呼。"}]);
-    st.className="prov-status ok";st.textContent=`設定完成 ✓ 使用 ${c.model||PROV.gemini.model}，回覆：「${r.text.trim().slice(0,30)}」`;
-    $("qKey").value="";
-  }catch(err){
+  btn.disabled=true;
+  try{await autoSetup("gemini",st);$("qKey").value=""}
+  catch(err){
     st.className="prov-status bad";
-    st.textContent="設定失敗："+errText(err.code||"network")+(err.code==="auth"||err.code==="bad_request"?"。確認金鑰有完整複製。":"")+(window.claude?"（在 Claude 網頁裡無法連到 Gemini，請改開電腦裡的 HTML 檔）":"");
-  }finally{btn.disabled=false;renderProvs();syncAi()}
+    st.textContent="設定失敗："+errText(err)+(err.code==="auth"?"。確認金鑰有完整複製。":"")+(window.claude?"（在 Claude 網頁裡無法連到 Gemini，請改用 https://hank08102006.github.io/Study/）":"");
+  }finally{btn.disabled=false;const keep=[st.className,st.textContent];renderProvs();st.className=keep[0];st.textContent=keep[1];syncAi()}
 };
 $("ytKey").addEventListener("input",e=>{aiCfg.yt=e.target.value.trim();saveAi()});
 $("aiClose").onclick=()=>{$("aiDlg").close();syncAi()};
@@ -908,7 +961,8 @@ $("provs").addEventListener("change",e=>{
 });
 $("provs").addEventListener("input",e=>{
   const el=e.target;if(!el.dataset.k)return;
-  pc(el.dataset.id)[el.dataset.k]=el.value.trim();saveAi();
+  const c=pc(el.dataset.id);c[el.dataset.k]=el.value.trim();delete c.lastOk;delete c.lastErr;delete c.lastErrCode;saveAi();
+  const st=$("st-"+el.dataset.id);if(st){const[cls,msg]=provState(el.dataset.id);st.className="prov-status "+cls;st.textContent=msg}
   const ch=chain().map(id=>PROV[id].label.replace(/（.*）/,""));
   $("aiSummary").textContent=ch.length?"使用順序："+ch.join(" → "):"尚無可用的 AI";
 });
@@ -916,25 +970,16 @@ $("provs").addEventListener("click",async e=>{
   const el=e.target.closest("button");if(!el)return;
   if(el.dataset.mv){const i=aiCfg.order.indexOf(el.dataset.mv),j=i+ +el.dataset.d;
     if(j>=0&&j<aiCfg.order.length){[aiCfg.order[i],aiCfg.order[j]]=[aiCfg.order[j],aiCfg.order[i]];saveAi();renderProvs()}}
-  else if(el.dataset.test){const id=el.dataset.test,st=$("st-"+id);
-    st.className="prov-status";st.textContent="測試中…";
-    const was=pc(id).on;pc(id).on=true;
-    try{if(!ready(id))throw{code:PROV[id].noKey?"bad_request":"auth"};
-      const r=await callHttp(id,[{role:"user",content:"請用一句繁體中文（15 字內）打招呼。"}]);
-      st.className="prov-status ok";st.textContent="可用："+r.text.trim().slice(0,30)}
-    catch(err){st.className="prov-status bad";st.textContent=errText(err.code)}
-    finally{pc(id).on=was}}
-  else if(el.dataset.models){const id=el.dataset.models,st=$("st-"+id),{P,c,base}=endpoint(id);
+  else if(el.dataset.auto){const id=el.dataset.auto;el.disabled=true;
+    let keep;
+    try{await autoSetup(id,$("st-"+id))}catch{}
+    finally{const st=$("st-"+id);keep=st&&[st.className,st.textContent];renderProvs();const s2=$("st-"+id);if(s2&&keep){s2.className=keep[0];s2.textContent=keep[1]}syncAi()}}
+  else if(el.dataset.models){const id=el.dataset.models,st=$("st-"+id);
     st.className="prov-status";st.textContent="載入中…";
-    try{const res=await fetch(base+"/models",{headers:authHeaders(P,c)});
-      if(!res.ok)throw{code:res.status===401||res.status===403?"auth":"bad_request"};
-      const j=await res.json();
-      const names=P.kind==="gemini"
-        ?(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>m.name.replace(/^models\//,""))
-        :(j.data||[]).map(m=>m.id);
+    try{const names=(await listModels(id)).map(m=>m.id).filter(n=>!SKIP_MODEL.test(n));
       $("ml-"+id).innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("");
       st.className="prov-status ok";st.textContent=`找到 ${names.length} 個模型，點「模型」欄挑選`;$("m-"+id).focus()}
-    catch(err){st.className="prov-status bad";st.textContent=errText(err.code||"network")}}
+    catch(err){st.className="prov-status bad";st.textContent="✗ "+errText(err.code?err:{code:"network"})}}
 });
 
 /* ---------- 影片來源 ---------- */
