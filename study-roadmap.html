@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>自學航線</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="自學航線">
+<meta name="theme-color" content="#15223A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#E9EEF1; --sheet:#F9FBFC; --sheet-2:#F1F5F7; --ink:#15223A; --ink-2:#56657A; --rule:#CFD8DF;
+  --grid:rgba(21,34,58,.055); --hi:#F3C83A; --hi-soft:rgba(243,200,58,.55); --link:#2556C9;
+  --good:#1F7E55; --warn:#A96A06; --bad:#B93A27; --scrim:rgba(21,34,58,.28);
+  --shadow:0 1px 0 rgba(21,34,58,.05),0 12px 32px -18px rgba(21,34,58,.35);
+  --f-display:"LXGW WenKai TC","Kaiti TC","DFKai-SB","BiauKai",serif;
+  --f-body:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0D131B; --sheet:#141C27; --sheet-2:#1A2431; --ink:#E3E9EF; --ink-2:#97A5B7; --rule:#2A3646;
+  --grid:rgba(227,233,239,.035); --hi:#E3B52F; --hi-soft:rgba(227,181,47,.3); --link:#86A9FF;
+  --good:#5BC08B; --warn:#E3A640; --bad:#F07B66; --scrim:rgba(0,0,0,.5);
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 14px 34px -18px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"]{
+  --paper:#0D131B; --sheet:#141C27; --sheet-2:#1A2431; --ink:#E3E9EF; --ink-2:#97A5B7; --rule:#2A3646;
+  --grid:rgba(227,233,239,.035); --hi:#E3B52F; --hi-soft:rgba(227,181,47,.3); --link:#86A9FF;
+  --good:#5BC08B; --warn:#E3A640; --bad:#F07B66; --scrim:rgba(0,0,0,.5);
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 14px 34px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  color:var(--ink); font:15px/1.65 var(--f-body);
+  padding-left:max(16px, env(safe-area-inset-left));
+  padding-right:max(16px, env(safe-area-inset-right));
+  padding-top:max(12px, env(safe-area-inset-top));
+  padding-bottom:max(48px, env(safe-area-inset-bottom));
+}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--link)}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.app{max-width:1180px;margin:0 auto}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:18px 14px}
+.brand{font-family:var(--f-display);font-size:26px;font-weight:700;letter-spacing:.04em;line-height:1}
+.brand small{display:block;font-family:var(--f-body);font-size:11px;font-weight:500;letter-spacing:.14em;color:var(--ink-2);margin-top:6px}
+.plans{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.chip{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:5px 14px;cursor:pointer;font-size:14px;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--sheet);border-radius:6px;padding:7px 14px;cursor:pointer;font-weight:500;font-size:14px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.hl{background:var(--hi);border-color:var(--hi);color:#15223A}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:13px}
+
+/* layout */
+.grid{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
+.grid>*{min-width:0}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:480px){.top{gap:10px}.plans{order:3;flex-basis:100%}.stats .v{font-size:19px}}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow)}
+aside.panel{padding:20px;display:flex;flex-direction:column;gap:18px;position:sticky;top:12px}
+@media (max-width:860px){aside.panel{position:static}}
+.plan-title{font-family:var(--f-display);font-size:30px;font-weight:700;line-height:1.2;margin:0;text-wrap:balance}
+.plan-sub{margin:6px 0 0;color:var(--ink-2);font-size:14px}
+.label{font-size:11px;letter-spacing:.12em;color:var(--ink-2);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat .v{font-family:var(--f-mono);font-size:22px;font-weight:600;line-height:1.2}
+.stat .v small{font-size:12px;font-weight:400;color:var(--ink-2);margin-left:2px}
+.track{position:relative;height:12px;background:var(--sheet-2);border:1px solid var(--rule);border-radius:3px;margin-top:6px}
+.track .fill{position:absolute;inset:0 auto 0 0;background:var(--hi);border-radius:2px}
+.track .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink)}
+.track-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);margin-top:6px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:3px 10px;border-radius:999px;border:1px solid currentColor}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.good{color:var(--good)}.pill.warn{color:var(--warn)}.pill.bad{color:var(--bad)}
+.pace-note{font-size:13px;color:var(--ink-2);margin:6px 0 0}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field input,.field select,.field textarea{background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;width:100%}
+.week ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
+.week li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:7px 0;border-bottom:1px dashed var(--rule);font-size:14px}
+.week li:last-child{border-bottom:0}
+.week .subj{display:block;font-size:11px;color:var(--ink-2)}
+.danger{background:none;border:0;color:var(--ink-2);font-size:12px;text-decoration:underline;cursor:pointer;align-self:flex-start;padding:0}
+
+/* notebook tabs */
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-inline:10px;margin-bottom:-1px;position:relative;z-index:1}
+.tab{border:1px solid var(--rule);border-bottom:0;background:var(--sheet-2);border-radius:8px 8px 0 0;padding:8px 14px 7px;cursor:pointer;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-start;line-height:1.25}
+.tab b{font-family:var(--f-display);font-size:17px;font-weight:700}
+.tab span{font-family:var(--f-mono);font-size:11px;color:var(--ink-2)}
+.tab[aria-selected="true"]{background:var(--sheet);box-shadow:inset 0 3px 0 var(--hi)}
+main.panel{border-radius:10px;overflow:hidden}
+.subj-head{padding:20px 24px 14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end;border-bottom:1px solid var(--rule)}
+.subj-head h2{font-family:var(--f-display);font-size:28px;margin:0;line-height:1.2}
+.subj-head .en{font-size:12px;letter-spacing:.1em;color:var(--ink-2)}
+.legend{font-size:12px;color:var(--ink-2)}
+.legend mark{background:linear-gradient(transparent 50%,var(--hi-soft) 50%);color:inherit;padding:0 2px}
+.res{padding:12px 24px;display:flex;gap:8px;flex-wrap:wrap;background:var(--sheet-2);border-bottom:1px solid var(--rule)}
+.res a{display:inline-flex;flex-direction:column;text-decoration:none;color:var(--ink);border:1px solid var(--rule);background:var(--sheet);border-radius:6px;padding:6px 10px;font-size:13px;line-height:1.35;max-width:260px}
+.res a:hover{border-color:var(--ink)}
+.res a small{color:var(--ink-2);font-size:11.5px}
+.topics{list-style:none;margin:0;padding:0}
+.topic{display:grid;grid-template-columns:28px 1fr auto auto;gap:12px;align-items:center;padding:12px 24px;border-bottom:1px solid var(--rule);background-image:linear-gradient(90deg,transparent 51px,var(--rule) 51px,var(--rule) 52px,transparent 52px)}
+.topic:last-child{border-bottom:0}
+.topic .n{font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
+.topic-main{min-width:0;cursor:pointer;background:none;border:0;text-align:left;padding:0}
+.topic-title{font-weight:500;font-size:15.5px}
+.topic-title.hot{background:linear-gradient(transparent 55%,var(--hi-soft) 55%);padding:0 2px}
+.topic-pts{display:block;font-size:13px;color:var(--ink-2);margin-top:2px}
+.topic.done .topic-title{text-decoration:line-through;text-decoration-color:var(--ink-2);color:var(--ink-2)}
+.hrs{font-family:var(--f-mono);font-size:13px;color:var(--ink-2);text-align:right;min-width:40px}
+.acts{display:flex;gap:6px}
+.check{width:20px;height:20px;accent-color:var(--ink);cursor:pointer}
+@media (max-width:620px){
+  .topic{grid-template-columns:24px 1fr;padding:12px 16px;background-image:none}
+  .topic .hrs{text-align:left}
+  .topic .hrs,.topic .acts{grid-column:2}
+  .subj-head,.res{padding-inline:16px}
+}
+.foot{padding:14px 24px;font-size:13px;color:var(--ink-2);display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:10}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--sheet);border-left:1px solid var(--rule);z-index:11;display:flex;flex-direction:column;box-shadow:var(--shadow);transform:translateX(0);transition:transform .22s ease}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+.d-head{padding:18px 20px 14px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.d-head h3{font-family:var(--f-display);font-size:24px;margin:2px 0 0;line-height:1.25;text-wrap:balance}
+.close{background:none;border:1px solid var(--rule);border-radius:6px;width:32px;height:32px;cursor:pointer;flex:none}
+.d-body{padding:16px 20px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.pts{display:flex;gap:6px;flex-wrap:wrap}
+.pts span{font-size:13px;background:var(--sheet-2);border:1px solid var(--rule);border-radius:4px;padding:2px 8px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.ai-box{border-top:1px dashed var(--rule);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.answer{font-size:14.5px;line-height:1.75}
+.answer h4{font-size:15px;margin:14px 0 4px}
+.answer p{margin:0 0 8px}
+.answer ul,.answer ol{margin:0 0 8px;padding-left:22px}
+.answer code{font-family:var(--f-mono);font-size:13px;background:var(--sheet-2);padding:1px 4px;border-radius:3px}
+.answer pre{background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:10px;overflow-x:auto}
+.answer pre code{background:none;padding:0}
+.thinking{color:var(--ink-2);font-style:italic}
+.note{font-size:13px;color:var(--ink-2);margin:0}
+.err{font-size:13px;color:var(--bad);margin:0}
+.follow{display:flex;gap:8px}
+.follow input{flex:1;min-width:0;background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:6px 10px}
+
+/* new-goal dialog */
+dialog{border:1px solid var(--rule);border-radius:12px;background:var(--sheet);color:var(--ink);padding:0;width:min(560px,calc(100% - 32px));box-shadow:var(--shadow)}
+dialog::backdrop{background:var(--scrim)}
+.dlg{padding:22px;display:flex;flex-direction:column;gap:14px}
+.dlg h3{font-family:var(--f-display);font-size:26px;margin:0}
+.dlg textarea{min-height:76px;resize:vertical}
+.examples{display:flex;gap:6px;flex-wrap:wrap}
+.examples button{font-size:12.5px;border:1px dashed var(--rule);background:none;border-radius:999px;padding:2px 10px;cursor:pointer}
+.dlg-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.top-acts{display:flex;gap:8px}
+
+/* AI settings */
+#aiDlg{width:min(680px,calc(100% - 32px))}
+.provs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:8px;max-height:60vh;overflow-y:auto}
+.prov{padding:12px 14px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:8px}
+.prov:last-child{border-bottom:0}
+.prov.off .prov-fields{display:none}
+.prov-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.prov-top label{font-weight:700}
+.prov .rank{font-family:var(--f-mono);font-size:12px;color:var(--ink-2);min-width:20px}
+.tag{font-size:12px;color:var(--ink-2);border:1px solid var(--rule);border-radius:999px;padding:0 8px}
+.tag.free{color:var(--good);border-color:currentColor}
+.ord{margin-left:auto;display:flex;gap:4px}
+.ord button{width:28px;height:28px;border:1px solid var(--rule);background:var(--sheet-2);border-radius:5px;cursor:pointer}
+.ord button:disabled{opacity:.35;cursor:default}
+.prov-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-left:30px}
+.prov-fields .full{grid-column:1/-1}
+@media (max-width:560px){.prov-fields{grid-template-columns:1fr;padding-left:0}}
+.prov-status{font-size:12.5px;color:var(--ink-2)}
+.prov-status.ok{color:var(--good)}.prov-status.bad{color:var(--bad)}
+.who{font-size:12px;color:var(--ink-2);margin:0}
+.src{border:1px solid var(--rule);border-radius:8px;background:var(--sheet-2)}
+.src summary{cursor:pointer;padding:8px 12px;font-size:14px;font-weight:500;display:flex;gap:8px;align-items:center}
+.src-body{padding:0 12px 12px;display:flex;flex-direction:column;gap:10px}
+.src textarea{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;width:100%;resize:vertical;font-size:13px}
+.vids{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.vids li{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;font-size:13px;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:6px 8px}
+.vids small{display:block;color:var(--ink-2);font-size:12px}
+.vids a{color:var(--ink)}
+.saved-tag{font-size:11px;font-weight:700;color:var(--good);border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:2px}
+.answer a.ts{font-family:var(--f-mono);font-size:12.5px;background:var(--hi-soft);color:var(--ink);text-decoration:none;padding:0 4px;border-radius:3px}
+.depth{background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;font-size:14px}
+.answer h3{font-family:var(--f-display);font-size:19px;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--rule)}
+.answer .tbl{overflow-x:auto;margin:0 0 10px}
+.answer table{border-collapse:collapse;font-size:13.5px;min-width:100%}
+.answer th,.answer td{border:1px solid var(--rule);padding:5px 8px;text-align:left;vertical-align:top}
+.answer th{background:var(--sheet-2);font-weight:700}
+.answer blockquote{margin:0 0 10px;padding:6px 12px;border-left:3px solid var(--hi);background:var(--sheet-2)}
+/* language mode */
+.seg{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:14px}
+.seg:has(input:checked){border-color:var(--ink);background:var(--ink);color:var(--sheet)}
+.seg input{accent-color:var(--hi)}
+.mode-tag{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-2);border:1px solid var(--rule);border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:2px}
+.lang-tool{display:flex;flex-direction:column;gap:12px}
+.lang-tool .intro{font-size:14px;color:var(--ink-2);margin:0}
+.passage{font-size:17px;line-height:1.9;background:var(--sheet-2);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;white-space:pre-wrap}
+.vocab-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.vocab-list li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid var(--rule);border-radius:6px;padding:6px 10px;font-size:14px}
+.vocab-list b{font-size:16px}
+.vocab-list small{color:var(--ink-2)}
+.say{border:1px solid var(--rule);background:var(--sheet);border-radius:5px;min-width:30px;height:28px;cursor:pointer;font-size:12px;padding:0 6px}
+.say:hover{border-color:var(--ink)}
+.sent{border:1px solid var(--rule);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.sent .n{font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
+.sent input,.lang-tool textarea{background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;width:100%;font-size:15px}
+.lang-tool textarea{resize:vertical;min-height:120px}
+.diff{font-size:15px;line-height:1.8}
+.diff .ok{color:var(--good)}
+.diff .miss{background:var(--hi-soft);text-decoration:underline wavy var(--bad);padding:0 1px}
+.diff .extra{color:var(--bad);text-decoration:line-through}
+.skills{display:flex;flex-direction:column;gap:6px}
+.skill{display:grid;grid-template-columns:44px 1fr 38px;gap:8px;align-items:center;font-size:13px}
+.skill .bar{height:8px;background:var(--sheet-2);border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.skill .bar i{display:block;height:100%;background:var(--ink)}
+.skill.weak .bar i{background:var(--bad)}
+.skill span:last-child{font-family:var(--f-mono);text-align:right}
+.flash{border:1px solid var(--rule);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;background:var(--sheet)}
+.flash .front{font-size:28px;font-weight:700;line-height:1.3}
+.issues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.issues li{border-left:3px solid var(--bad);padding:4px 10px;background:var(--sheet-2);font-size:14px}
+.issues del{color:var(--bad)}.issues ins{color:var(--good);text-decoration:none;font-weight:700}
+
+/* practice & review */
+.review{border:1px solid var(--rule);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--sheet-2)}
+.review.due{border-color:var(--hi);box-shadow:inset 4px 0 0 var(--hi)}
+.review .big{font-family:var(--f-mono);font-size:20px;font-weight:600}
+.quiz{border:1px solid var(--rule);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--sheet)}
+.q-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.q-bar{height:4px;background:var(--sheet-2);border-radius:2px;overflow:hidden}
+.q-bar i{display:block;height:100%;background:var(--hi)}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opts label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;border:1px solid var(--rule);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:14px}
+.opts label.right{border-color:var(--good);box-shadow:inset 3px 0 0 var(--good)}
+.opts label.wrong{border-color:var(--bad);box-shadow:inset 3px 0 0 var(--bad)}
+.quiz textarea{background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:8px;width:100%;resize:vertical;font-size:14px}
+.fb{border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;background:var(--sheet-2);border-left:4px solid var(--rule)}
+.fb.good{border-left-color:var(--good)}.fb.bad{border-left-color:var(--bad)}
+.fb .verdict{font-weight:700}.fb.good .verdict{color:var(--good)}.fb.bad .verdict{color:var(--bad)}
+.q-done{text-align:left;display:flex;flex-direction:column;gap:6px}
+.q-done b{font-family:var(--f-mono);font-size:24px}
+#revDlg{width:min(720px,calc(100% - 32px))}
+.rev-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+#revBody{max-height:64vh;overflow-y:auto}
+.book{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.book li{border:1px solid var(--rule);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.book .meta{font-size:12px;color:var(--ink-2);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stage{display:inline-flex;gap:2px}.stage i{width:10px;height:6px;border-radius:1px;background:var(--rule)}.stage i.on{background:var(--good)}
+.book details summary{cursor:pointer;font-size:13px;color:var(--link)}
+.quick{border:1px solid var(--hi);background:var(--sheet-2);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.quick-steps{margin:0;padding-left:20px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
+.yt-set{border-top:1px dashed var(--rule);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">自學航線<small>把目標拆成可以一週一週走完的路</small></div>
+    <nav class="plans" id="plans" aria-label="學習目標"></nav>
+    <div class="top-acts">
+      <button class="btn ghost" id="bakBtn" type="button">備份／搬移</button>
+      <button class="btn ghost" id="aiBtn" type="button">AI 設定</button>
+      <button class="btn hl" id="newBtn" type="button">＋ 新目標</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <aside class="panel" id="summary"></aside>
+    <div>
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <main class="panel" id="subject"></main>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<section class="drawer" id="drawer" hidden aria-label="主題詳情">
+  <div class="d-head">
+    <div><div class="label" id="dSubj"></div><h3 id="dTitle"></h3></div>
+    <button class="close" id="dClose" type="button" aria-label="關閉">✕</button>
+  </div>
+  <div class="d-body">
+    <div class="pts" id="dPts"></div>
+    <div class="row" id="dLinks"></div>
+    <div class="lang-tool" id="langTool" hidden></div>
+    <div class="ai-box" id="lessonBox">
+      <div class="label">濃縮講義 · 影片＋AI 知識，10 分鐘讀完</div>
+      <details class="src" id="srcBox">
+        <summary>加入影片內容（選填）<span class="note" id="srcCount"></span></summary>
+        <div class="src-body">
+          <div class="row"><button class="btn ghost sm" id="findVid" type="button">自動找影片</button><span class="note" id="findNote"></span></div>
+          <ul class="vids" id="vids"></ul>
+          <div class="field">
+            <label class="label" for="vidUrls">YouTube 網址（一行一個，最多 3 部）</label>
+            <textarea id="vidUrls" rows="2" placeholder="https://www.youtube.com/watch?v=…"></textarea>
+            <span class="note">AI 直接看影片需要設定 Google Gemini。建議用 30 分鐘內的影片，太長會超過免費額度。</span>
+          </div>
+          <div class="field">
+            <label class="label" for="vidText">或貼上影片字幕（任何 AI 都能用）</label>
+            <textarea id="vidText" rows="3" placeholder="YouTube 影片下方「…更多」→「顯示轉錄稿」→ 全選複製，貼到這裡"></textarea>
+          </div>
+        </div>
+      </details>
+      <div class="row" id="aiBtns">
+        <select id="depth" aria-label="講義詳細程度" class="depth">
+          <option value="brief">精簡・10 分鐘</option>
+          <option value="standard">標準・20 分鐘</option>
+          <option value="deep">詳細・30 分鐘以上</option>
+        </select>
+        <button class="btn" id="aExplain" type="button">產生濃縮講義</button>
+        <button class="btn ghost" id="aPractice" type="button">開始練習</button>
+        <button class="btn ghost sm" id="aStop" type="button" hidden>停止</button>
+      </div>
+      <p class="note" id="aiOff" hidden>還沒有可用的 AI。 <button class="btn sm hl" type="button" data-openai="1">設定 Gemini</button></p>
+      <p class="err" id="aErr" hidden></p>
+      <div class="answer" id="aOut"></div>
+      <p class="who" id="aWho"></p>
+      <form class="follow" id="follow" hidden>
+        <input id="followQ" placeholder="哪裡不懂？直接追問…" autocomplete="off">
+        <button class="btn sm" type="submit">追問</button>
+      </form>
+    </div>
+    <div class="quiz" id="quiz" hidden></div>
+  </div>
+</section>
+
+<dialog id="bakDlg">
+  <div class="dlg">
+    <h3>備份／搬移進度</h3>
+    <p class="note">電腦和手機的資料是分開存的。在一台「匯出」，到另一台「匯入」，就能把學習目標、進度、講義、錯題和單字卡搬過去。AI 金鑰不會被匯出，要在每台裝置各自設定。</p>
+    <div class="label">匯出（從這台帶走）</div>
+    <div class="row">
+      <button class="btn" type="button" id="bakShare">分享備份檔</button>
+      <button class="btn ghost" type="button" id="bakDown">下載備份檔</button>
+      <button class="btn ghost" type="button" id="bakCopy">複製成文字</button>
+    </div>
+    <div class="label">匯入（放進這台）</div>
+    <div class="row">
+      <label class="btn ghost" for="bakFile">選擇備份檔</label>
+      <input id="bakFile" type="file" accept=".json,application/json,text/plain" hidden>
+    </div>
+    <div class="field">
+      <label class="label" for="bakTxt">或貼上備份文字</label>
+      <textarea id="bakTxt" rows="4" style="background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:8px;width:100%;font-size:12px;font-family:var(--f-mono)"></textarea>
+    </div>
+    <p class="note" id="bakMsg"></p>
+    <div class="dlg-foot">
+      <button class="btn ghost" type="button" id="bakPaste">匯入貼上的文字</button>
+      <button class="btn" type="button" id="bakClose">完成</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="revDlg">
+  <div class="dlg">
+    <div class="rev-head">
+      <h3 id="revTitle">今日複習</h3>
+      <div class="row">
+        <button class="chip" type="button" data-revmode="due" id="revTabDue">今日到期</button>
+        <button class="chip" type="button" data-revmode="book" id="revTabBook">錯題本</button>
+      </div>
+    </div>
+    <p class="note" id="revInfo"></p>
+    <div id="revBody"></div>
+    <div class="dlg-foot"><span></span><button class="btn" type="button" id="revClose">完成</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlg">
+  <form class="dlg" id="genForm" method="dialog">
+    <h3>新的學習目標</h3>
+    <div class="row" role="radiogroup" aria-label="目標類型">
+      <label class="seg"><input type="radio" name="gType" id="gTypeSubj" value="subject" checked> 學科／技能</label>
+      <label class="seg"><input type="radio" name="gType" id="gTypeLang" value="language"> 語言</label>
+    </div>
+    <p class="note" id="gIntro">AI 會把目標拆成模組與主題，估時數、標出最關鍵的 20%，並附上 YouTube 搜尋關鍵字與推薦課程。</p>
+    <div class="lang-fields" id="gLangFields" hidden>
+      <div class="settings">
+        <div class="field"><label class="label" for="gLang">語言</label><input id="gLang" placeholder="例：日文、英文、韓文" list="gLangList"><datalist id="gLangList"><option value="英文"><option value="日文"><option value="韓文"><option value="西班牙文"><option value="法文"><option value="德文"></datalist></div>
+        <div class="field"><label class="label" for="gLangLv">程度</label>
+          <select id="gLangLv"><option value="zero">完全沒學過 → 照課程從零學</option><option value="known">學過 → 先診斷，專攻弱項</option></select></div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label" for="gGoal">我想學會</label>
+      <textarea id="gGoal" required placeholder="例：三個月內考過 TOEIC 850"></textarea>
+      <div class="examples" id="gEx">
+        <button type="button">Python 資料分析，能自己處理 Excel 報表</button>
+        <button type="button">土木技師考試：結構學與鋼筋混凝土</button>
+        <button type="button">看懂日劇、能跟日本同事簡單聊天</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label" for="gLevel">目前程度</label>
+      <input id="gLevel" placeholder="例：大學學過一點，已經忘光">
+    </div>
+    <div class="settings">
+      <div class="field"><label class="label" for="gHours">每週可讀時數</label><input id="gHours" type="number" min="1" max="100" value="15"></div>
+      <div class="field"><label class="label" for="gDeadline">期限</label><input id="gDeadline" type="date"></div>
+    </div>
+    <div class="quiz" id="gQuiz" hidden></div>
+    <p class="note" id="gStatus"></p>
+    <p class="err" id="gErr" hidden></p>
+    <div class="dlg-foot">
+      <button class="btn ghost" type="button" id="gCancel">取消</button>
+      <button class="btn hl" type="submit" id="gGo">規劃路線</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="aiDlg">
+  <div class="dlg">
+    <h3>AI 設定</h3>
+    <p class="note">勾選要用的 AI，並用 ↑↓ 排好順序。講解和規劃時會先用第一個；那一家額度用完、金鑰錯誤或連不上，就自動換下一個。金鑰只存在這台裝置的瀏覽器裡。</p>
+    <p class="note" id="aiEnvNote" hidden>你現在是在 Claude 裡開這一頁，瀏覽器的安全限制只允許使用 Claude。想用其他 AI，請直接開電腦裡的 HTML 檔，或之後的手機版。</p>
+    <div class="quick">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div class="label" style="font-weight:700; font-size:13px;">Gemini 快速設定</div>
+        <a class="btn sm hl" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style="text-decoration:none; font-weight:700; padding:6px 14px; border-radius:6px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.15);">
+          🌐 開啟 Google AI Studio 網站（取得金鑰） ↗
+        </a>
+      </div>
+      <ol class="quick-steps">
+        <li>點擊上方 <b>「開啟 Google AI Studio 網站」</b>（免手動搜尋），登入 Google 帳號後點「<b>Create API key（建立 API 金鑰）</b>」並複製。</li>
+        <li>貼到下方輸入框，點擊「自動設定」。系統會自動啟用 Gemini、排到第一順位、挑最新的模型並測試。</li>
+      </ol>
+      <div class="follow"><input id="qKey" type="password" autocomplete="off" placeholder="貼上 Gemini API 金鑰（通常是 AIza 開頭）"><button class="btn sm hl" id="qGo" type="button">自動設定</button></div>
+      <p class="prov-status" id="qSt"></p>
+    </div>
+    <ol class="provs" id="provs"></ol>
+    <div class="yt-set field">
+      <label class="label" for="ytKey">YouTube Data API 金鑰（選填，用來「自動找影片」）</label>
+      <input id="ytKey" type="password" autocomplete="off" placeholder="貼上金鑰">
+      <span class="note">到 Google Cloud Console 啟用「YouTube Data API v3」後建立 API 金鑰，每天免費搜尋約 100 次。沒填也可以自己貼影片網址。 <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">前往啟用</a></span>
+    </div>
+    <div class="dlg-foot">
+      <span class="note" id="aiSummary"></span>
+      <button class="btn" type="button" id="aiClose">完成</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* ---------- 內建：資工所六科 ---------- */
+const SUBJ = [
+ {name:"資料結構", en:"DATA STRUCTURES",
+  res:[["清大開放式課程・資料結構","中文、系統完整，適合打底","清大 開放式課程 資料結構"],
+       ["Abdul Bari・Data Structures","圖解清楚，英文好懂","Abdul Bari data structures"],
+       ["Horowitz《資料結構》","考研主流教科書，配合考古題","Horowitz 資料結構 講解"]],
+  t:[["複雜度分析與遞迴",8,"Big-O / Θ / Ω、遞迴式展開",0,"資料結構 時間複雜度 Big O"],
+     ["陣列、鏈結串列、稀疏矩陣",8,"環狀/雙向鏈結、多項式相加",0,"資料結構 鏈結串列"],
+     ["堆疊與佇列",8,"中序轉後序、運算式求值、環狀佇列",1,"資料結構 中序轉後序 stack"],
+     ["樹與二元樹",12,"走訪、由走訪還原樹、引線二元樹",1,"資料結構 二元樹 走訪"],
+     ["堆積與優先佇列",12,"Heap 建立 O(n)、Min-Max Heap、Binomial Heap",1,"資料結構 heap 優先佇列"],
+     ["搜尋樹與平衡樹",16,"BST、AVL 旋轉、紅黑樹、B 樹、2-3-4 樹",1,"AVL tree 紅黑樹 B tree 講解"],
+     ["圖",18,"BFS/DFS、MST（Prim/Kruskal）、最短路徑、AOV/AOE",1,"資料結構 圖 最短路徑 最小生成樹"],
+     ["排序",14,"快速/合併/堆積/基數排序、穩定性、比較下界",1,"排序演算法 比較 快速排序 合併排序"],
+     ["雜湊",8,"雜湊函數、開放定址、鏈結法、負載因子",0,"資料結構 hashing 碰撞"],
+     ["資料結構考古題實戰",20,"限時寫近五年各校試題、整理錯題",1,"資工所 考古題 資料結構 解析"]]},
+ {name:"演算法", en:"ALGORITHMS",
+  res:[["台大・演算法設計與分析","中文、觀念深入","台大 演算法設計與分析"],
+       ["MIT 6.006 Introduction to Algorithms","經典公開課","MIT 6.006 introduction to algorithms"],
+       ["CLRS《演算法導論》","考題大量取材","CLRS 演算法導論 講解"]],
+  t:[["漸近記號與 Master Theorem",8,"遞迴樹、代換法、主定理三種情況",1,"Master theorem 遞迴式 講解"],
+     ["分治法",10,"合併排序、最近點對、Strassen",0,"分治法 divide and conquer 演算法"],
+     ["動態規劃",18,"LCS、0/1 背包、矩陣鏈乘、最佳 BST",1,"動態規劃 LCS 背包問題 講解"],
+     ["貪婪法",10,"Huffman code、Activity selection、何時會失敗",1,"貪婪演算法 Huffman activity selection"],
+     ["圖演算法",16,"Dijkstra、Bellman-Ford、Floyd-Warshall、拓樸排序、最大流",1,"Dijkstra Bellman Ford Floyd Warshall 比較"],
+     ["攤銷分析",6,"聚集法、記帳法、位能法",0,"amortized analysis 攤銷分析"],
+     ["NP-完備性與歸約",12,"P/NP/NPC、SAT、常見歸約鏈",1,"NP complete reduction 講解"],
+     ["演算法考古題實戰",20,"時間複雜度判斷題、DP 手算",1,"資工所 考古題 演算法 解析"]]},
+ {name:"計算機組織", en:"COMPUTER ORGANIZATION",
+  res:[["清大開放式課程・計算機結構","考研常見推薦","清大 開放式課程 計算機結構"],
+       ["Patterson & Hennessy《計算機組織與設計》","考題幾乎全出自此書","Patterson Hennessy 計算機組織 講解"],
+       ["CS61C (UC Berkeley)","RISC-V/MIPS 觀念補強","CS61C Berkeley great ideas computer architecture"]],
+  t:[["效能評估",8,"CPU time、MIPS、Amdahl's Law",1,"計算機組織 CPU time Amdahl"],
+     ["MIPS 指令集",14,"R/I/J 格式、程序呼叫、組合語言翻譯",1,"MIPS 指令格式 組合語言"],
+     ["數字表示與算術",12,"二補數、溢位、乘除法電路、IEEE 754",1,"IEEE 754 浮點數 二補數"],
+     ["單週期處理器",12,"資料路徑、控制訊號",0,"single cycle datapath MIPS 控制訊號"],
+     ["管線化與危障",18,"Forwarding、Stall、分支預測、時序圖",1,"pipeline hazard forwarding 管線化"],
+     ["記憶體階層",18,"Cache 映射、AMAT、虛擬記憶體、TLB",1,"cache 記憶體階層 AMAT TLB"],
+     ["I/O 與平行處理",8,"中斷、DMA、多核心概念",0,"計算機組織 I/O interrupt DMA"],
+     ["計組考古題實戰",20,"管線時序、Cache 計算題",1,"資工所 考古題 計算機組織"]]},
+ {name:"作業系統", en:"OPERATING SYSTEMS",
+  res:[["清大開放式課程・作業系統","中文經典，節奏清楚","清大 開放式課程 作業系統"],
+       ["Neso Academy・Operating System","主題切得細，好複習","Neso Academy operating system"],
+       ["Silberschatz《作業系統》（恐龍書）","考研標準教材","恐龍書 作業系統 講解"]],
+  t:[["OS 結構與系統呼叫",6,"雙模式、中斷、系統呼叫流程",0,"作業系統 system call dual mode"],
+     ["行程與執行緒",10,"PCB、context switch、fork、多執行緒模型",0,"作業系統 process thread fork"],
+     ["CPU 排程",12,"FCFS/SJF/RR/優先權、甘特圖、平均等待時間",1,"CPU scheduling 甘特圖 SJF RR"],
+     ["行程同步",16,"Critical section、Semaphore、Monitor、經典問題",1,"semaphore 生產者消費者 哲學家用餐"],
+     ["死結",10,"四條件、資源配置圖、Banker's Algorithm",1,"Banker's algorithm 銀行家演算法 死結"],
+     ["記憶體管理",14,"Paging、Segmentation、分頁表計算",1,"作業系統 paging 分頁 計算"],
+     ["虛擬記憶體",12,"Page fault、FIFO/LRU/Optimal、Thrashing",1,"page replacement LRU FIFO thrashing"],
+     ["檔案系統與磁碟排程",10,"配置方式、SSTF/SCAN/C-LOOK",0,"disk scheduling SCAN SSTF 檔案系統"],
+     ["作業系統考古題實戰",20,"排程計算、同步程式判讀",1,"資工所 考古題 作業系統"]]},
+ {name:"離散數學", en:"DISCRETE MATHEMATICS",
+  res:[["TrevTutor・Discrete Math","英文、例題多","TrevTutor discrete math"],
+       ["Kimberly Brehm・Discrete Math","步驟詳細","Kimberly Brehm discrete math"],
+       ["Rosen《離散數學》","題庫來源","離散數學 Rosen 講解"]],
+  t:[["邏輯與證明",8,"命題邏輯、量詞、數學歸納法",0,"離散數學 邏輯 數學歸納法"],
+     ["集合、關係、函數",10,"等價關係、偏序、Hasse 圖",1,"離散數學 等價關係 偏序 Hasse"],
+     ["計數原理",14,"排列組合、重複組合、鴿籠原理、排容原理",1,"離散數學 排容原理 鴿籠原理"],
+     ["遞迴關係與生成函數",14,"特徵方程、非齊次解、生成函數",1,"遞迴關係 生成函數 特徵方程"],
+     ["圖論",14,"Euler/Hamilton、平面圖、著色、同構",1,"離散數學 圖論 Euler Hamilton 平面圖"],
+     ["樹",6,"生成樹計數、前綴碼",0,"離散數學 樹 spanning tree"],
+     ["代數結構與布林代數",6,"群、環、布林函數化簡",0,"離散數學 群 布林代數"],
+     ["離散考古題實戰",16,"計數與遞迴題型大量練習",1,"資工所 考古題 離散數學"]]},
+ {name:"線性代數", en:"LINEAR ALGEBRA",
+  res:[["李宏毅・線性代數","中文，重視直覺","李宏毅 線性代數"],
+       ["3Blue1Brown・線性代數的本質","動畫建立幾何直覺，先看","3Blue1Brown 線性代數的本質"],
+       ["MIT 18.06 Gilbert Strang","經典公開課","MIT 18.06 Gilbert Strang linear algebra"]],
+  t:[["線性方程組與高斯消去",8,"列運算、RREF、解的存在性",0,"線性代數 高斯消去 RREF"],
+     ["矩陣運算與反矩陣",8,"LU 分解、可逆條件",0,"線性代數 反矩陣 LU 分解"],
+     ["向量空間、基底、維度",14,"子空間、秩、四大基本子空間",1,"線性代數 向量空間 基底 維度 秩"],
+     ["線性轉換",10,"核與值域、矩陣表示、換基底",1,"線性代數 線性轉換 kernel range"],
+     ["行列式",8,"性質、餘因子展開、Cramer 法則",0,"線性代數 行列式 性質"],
+     ["特徵值與對角化",14,"特徵多項式、可對角化條件、Cayley-Hamilton",1,"線性代數 特徵值 對角化"],
+     ["內積與正交",12,"Gram-Schmidt、正交投影、最小平方法",1,"Gram-Schmidt 最小平方法 正交投影"],
+     ["對稱矩陣、二次型、SVD",10,"正定判斷、譜定理、SVD",1,"線性代數 正定矩陣 SVD"],
+     ["線代考古題實戰",16,"證明題與計算題分開練",1,"資工所 考古題 線性代數"]]}
+];
+function presetPlan(){
+  return {id:"cs-grad", title:"資工所六科", goal:"資工所研究所考試（資料結構、演算法、計組、作業系統、離散數學、線性代數）",
+    subtitle:"先用資料結構＋演算法打底，計組與作業系統接著讀，兩科數學每週穿插；最後一個月全力寫考古題。",
+    weeklyHours:30, deadline:"2027-02-01", createdAt:Date.now(), done:{},
+    subjects:SUBJ.map((s,si)=>({name:s.name,en:s.en,
+      resources:s.res.map(([name,note,q])=>({name,note,q})),
+      topics:s.t.map(([title,hours,points,hot,q],ti)=>({id:si+"-"+ti,title,hours,points,hot:!!hot,q}))}))};
+}
+
+/* ---------- 儲存：Claude 資料庫優先，否則瀏覽器本機 ---------- */
+const LS="zixue-plans-v1", UI="zixue-ui-v1";
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const localStore={
+  async list(){return lsGet(LS,[])},
+  async save(p){const all=lsGet(LS,[]);const i=all.findIndex(x=>x.id===p.id);i<0?all.push(p):all[i]=p;lsSet(LS,all)},
+  async remove(id){lsSet(LS,lsGet(LS,[]).filter(x=>x.id!==id))}
+};
+/* 雲端：每份講義、每道錯題各存一筆，避免單筆超過大小上限；只寫有變動的 */
+function dbStore(db){
+  const sig={};
+  async function syncSub(pid,name,items){
+    const pre=`${pid}/${name}/`,seen=new Set(),jobs=[];
+    for(const[id,val]of items){const k=pre+id,j=JSON.stringify(val);seen.add(k);
+      if(sig[k]!==j){sig[k]=j;jobs.push(db.doc(`plans/${pid}/${name}/${id}`).set(JSON.parse(j)))}}
+    for(const k of Object.keys(sig))if(k.startsWith(pre)&&!seen.has(k)){delete sig[k];jobs.push(db.doc(`plans/${pid}/${name}/${k.slice(pre.length)}`).delete())}
+    await Promise.all(jobs);
+  }
+  return{
+    async list(){
+      const s=await db.collection("plans").get();const out=[];
+      for(const d of s.docs){if(!d.exists)continue;const p={...d.data()};
+        p.notes={...(p.notes||{})};p.mistakes=[...(p.mistakes||[])];p.cards=[...(p.cards||[])];
+        const[ns,ms,cs]=await Promise.all([db.collection(`plans/${p.id}/notes`).get(),db.collection(`plans/${p.id}/mistakes`).get(),db.collection(`plans/${p.id}/cards`).get()]);
+        cs.docs.forEach(c=>{if(c.exists){p.cards.push(c.data());sig[`${p.id}/cards/${c.id}`]=JSON.stringify(c.data())}});
+        ns.docs.forEach(n=>{if(n.exists){p.notes[n.id]=n.data();sig[`${p.id}/notes/${n.id}`]=JSON.stringify(n.data())}});
+        ms.docs.forEach(m=>{if(m.exists){p.mistakes.push(m.data());sig[`${p.id}/mistakes/${m.id}`]=JSON.stringify(m.data())}});
+        out.push(p)}
+      return out;
+    },
+    async save(p){
+      const{notes={},mistakes=[],cards=[],...core}=JSON.parse(JSON.stringify(p));
+      await Promise.all([db.doc("plans/"+p.id).set(core),
+        syncSub(p.id,"notes",Object.entries(notes)),
+        syncSub(p.id,"cards",cards.map(c=>[c.id,c])),
+        syncSub(p.id,"mistakes",mistakes.map(m=>[m.id,m]))]);
+    },
+    async remove(id){await db.doc("plans/"+id).delete()}
+  };
+}
+
+let store=localStore, sample=null, plans=[], curId=null, tab=0;
+const ui=lsGet(UI,{});
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+const cur=()=>plans.find(p=>p.id===curId)||plans[0];
+const WEEK=7*864e5;
+
+let saveTimer=null;
+function scheduleSave(p){clearTimeout(saveTimer);saveTimer=setTimeout(()=>store.save(p).catch(()=>{}),500)}
+
+/* ---------- 計算 ---------- */
+function stats(p){let total=0,doneH=0,cnt=0,doneC=0;
+  p.subjects.forEach(s=>s.topics.forEach(t=>{const h=+t.hours||0;total+=h;cnt++;if(p.done[t.id]){doneH+=h;doneC++}}));
+  return{total,doneH,cnt,doneC}}
+function weekPlan(p){
+  const n=p.subjects.length; if(!n)return{out:[],h:0};
+  const lanes=p.subjects.map(s=>s.topics.filter(t=>!p.done[t.id]));
+  const start=Math.floor((Date.now()-(p.createdAt||Date.now()))/WEEK)%n;
+  const out=[];let h=0,i=start,guard=0;
+  while(h<p.weeklyHours&&lanes.some(l=>l.length)&&guard++<500){
+    const k=i%n; if(lanes[k].length){const t=lanes[k].shift();out.push({t,s:p.subjects[k]});h+=+t.hours||0} i++;
+  }
+  return{out,h};
+}
+function pace(p,st){
+  const left=st.total-st.doneH;
+  const weeks=Math.max(0,(new Date(p.deadline+"T23:59:59")-Date.now())/WEEK);
+  if(!p.deadline||isNaN(weeks))return{cls:"warn",text:"尚未設定期限",note:""};
+  if(left<=0)return{cls:"good",text:"全部完成",note:"可以開始第二輪複習與模擬考。",weeks};
+  if(weeks<0.5)return{cls:"bad",text:"已到期限",note:`還剩 ${left} 小時的內容，先讀螢光筆標記的主題。`,weeks};
+  const need=left/weeks;
+  if(need<=p.weeklyHours)return{cls:"good",text:"時間足夠",note:`照目前每週 ${p.weeklyHours} 小時，約 ${Math.ceil(left/p.weeklyHours)} 週讀完，比期限早 ${Math.max(0,Math.floor(weeks-left/p.weeklyHours))} 週。`,weeks};
+  if(need<=p.weeklyHours*1.2)return{cls:"warn",text:"要抓緊",note:`每週需要 ${need.toFixed(1)} 小時才趕得上，沒有請假的空間。`,weeks};
+  return{cls:"bad",text:"排不完",note:`每週需要 ${need.toFixed(1)} 小時。建議先讀螢光筆標記的主題（${hotHours(p)} 小時），其餘有空再補。`,weeks};
+}
+function hotHours(p){let h=0;p.subjects.forEach(s=>s.topics.forEach(t=>{if(t.hot&&!p.done[t.id])h+=+t.hours||0}));return h}
+
+/* ---------- 畫面 ---------- */
+function render(){
+  const p=cur(); if(!p)return; curId=p.id; if(tab>=p.subjects.length)tab=0;
+  lsSet(UI,{curId,tab});
+  $("plans").innerHTML=plans.map(x=>`<button class="chip" type="button" data-plan="${esc(x.id)}" aria-pressed="${x.id===p.id}">${esc(x.title)}</button>`).join("");
+  renderSummary(p); renderTabs(p); renderSubject(p);
+}
+function renderSummary(p){
+  const st=stats(p), pc=pace(p,st), wk=weekPlan(p);
+  const pct=st.total?Math.round(st.doneH/st.total*100):0;
+  const expH=Math.min(st.total,((Date.now()-(p.createdAt||Date.now()))/WEEK)*p.weeklyHours);
+  const expPct=st.total?Math.min(100,expH/st.total*100):0;
+  $("summary").innerHTML=`
+    <div><h1 class="plan-title">${esc(p.title)}</h1><p class="plan-sub">${esc(p.subtitle)}</p></div>
+    <div class="stats">
+      <div class="stat"><div class="label">完成</div><div class="v">${pct}<small>%</small></div></div>
+      <div class="stat"><div class="label">剩餘</div><div class="v">${st.total-st.doneH}<small>h</small></div></div>
+      <div class="stat"><div class="label">距期限</div><div class="v">${pc.weeks!=null?Math.max(0,Math.floor(pc.weeks)):"—"}<small>週</small></div></div>
+    </div>
+    <div>
+      <div class="track" role="img" aria-label="已完成 ${pct}%"><div class="fill" style="width:${pct}%"></div><div class="mark" style="left:calc(${expPct}% - 1px)" title="依進度今天應到的位置"></div></div>
+      <div class="track-legend"><span class="mono">${st.doneH} / ${st.total} h</span><span>｜= 今天應到的位置</span></div>
+    </div>
+    <div><span class="pill ${pc.cls}">${pc.text}</span><p class="pace-note">${esc(pc.note)}</p></div>
+    <div class="settings">
+      <div class="field"><label class="label" for="sHours">每週時數</label><input id="sHours" type="number" min="1" max="100" value="${+p.weeklyHours}"></div>
+      <div class="field"><label class="label" for="sDeadline">期限</label><input id="sDeadline" type="date" value="${esc(p.deadline)}"></div>
+    </div>
+    ${skillsBlock(p)}
+    ${reviewBlock(p)}
+    <div class="week">
+      <div class="label">本週讀這些 · <span class="mono">${wk.h} h</span></div>
+      ${wk.out.length?`<ul>${wk.out.map(({t,s})=>`<li><input class="check" type="checkbox" id="w-${esc(t.id)}" data-done="${esc(t.id)}"><label for="w-${esc(t.id)}"><span class="subj">${esc(s.name)}</span>${esc(t.title)}</label><span class="hrs">${+t.hours}h</span></li>`).join("")}</ul>`:`<p class="note">全部讀完了。</p>`}
+    </div>
+    <button class="danger" type="button" id="delPlan">刪除這個目標</button>`;
+}
+function renderTabs(p){
+  $("tabs").innerHTML=p.subjects.map((s,i)=>{const d=s.topics.filter(t=>p.done[t.id]).length;
+    return `<button class="tab" role="tab" type="button" aria-selected="${i===tab}" data-tab="${i}"><b>${esc(s.name)}</b><span>${d}/${s.topics.length}</span></button>`}).join("");
+}
+function renderSubject(p){
+  const s=p.subjects[tab]; if(!s){$("subject").innerHTML="";return}
+  const h=s.topics.reduce((a,t)=>a+(+t.hours||0),0);
+  $("subject").innerHTML=`
+    <div class="subj-head">
+      <div><div class="en">${esc(s.en||"")}</div><h2>${esc(s.name)}</h2></div>
+      <div class="legend"><span class="mono">${h} h</span> · ${s.topics.length} 個主題 · 由上往下讀 · <mark>螢光筆</mark>＝最關鍵、最常考</div>
+    </div>
+    ${s.resources?.length?`<div class="res">${s.resources.map(r=>`<a href="${yt(r.q||r.name)}" target="_blank" rel="noopener">${esc(r.name)}<small>${esc(r.note||"")}</small></a>`).join("")}</div>`:""}
+    <ol class="topics">${s.topics.map((t,i)=>`
+      <li class="topic ${p.done[t.id]?"done":""}">
+        <input class="check" type="checkbox" id="c-${esc(t.id)}" data-done="${esc(t.id)}" ${p.done[t.id]?"checked":""} aria-label="完成：${esc(t.title)}">
+        <button class="topic-main" type="button" data-open="${esc(t.id)}"><span class="topic-title ${t.hot?"hot":""}">${esc(t.title)}</span>${t.mode&&t.mode!=="lesson"?`<span class="mode-tag">${MODE_NAME[t.mode]||""}</span>`:""}${p.notes?.[t.id]?`<span class="saved-tag">有講義</span>`:""}<span class="topic-pts">${esc(t.points||"")}</span></button>
+        <span class="hrs">${+t.hours}h</span>
+        <span class="acts"><a class="btn ghost sm" href="${yt(t.q||s.name+" "+t.title)}" target="_blank" rel="noopener">YouTube</a><button class="btn ghost sm" type="button" data-open="${esc(t.id)}">講義</button></span>
+      </li>`).join("")}</ol>
+    <div class="foot"><span>推薦課程與頻道來自 Claude 的整理；點擊會在 YouTube 以關鍵字搜尋，挑播放清單最完整的那一個。</span></div>`;
+}
+
+/* ---------- 事件 ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-plan],[data-tab],[data-open]");
+  if(!el)return;
+  if(el.dataset.plan){curId=el.dataset.plan;tab=0;render()}
+  else if(el.dataset.tab){tab=+el.dataset.tab;render()}
+  else if(el.dataset.open){openDrawer(el.dataset.open)}
+});
+document.addEventListener("change",e=>{
+  const p=cur(); const el=e.target;
+  if(el.dataset.done){if(el.checked)p.done[el.dataset.done]=true;else delete p.done[el.dataset.done];scheduleSave(p);render();
+    const again=document.getElementById(el.id); again&&again.focus()}
+  else if(el.id==="sHours"){const v=+el.value;if(v>0){p.weeklyHours=v;scheduleSave(p);render()}}
+  else if(el.id==="sDeadline"&&el.value){p.deadline=el.value;scheduleSave(p);render()}
+});
+document.addEventListener("click",async e=>{
+  if(e.target.id!=="delPlan")return;
+  const p=cur(); if(!confirm(`刪除「${p.title}」和它的進度？`))return;
+  plans=plans.filter(x=>x.id!==p.id); store.remove(p.id).catch(()=>{});
+  if(!plans.length)plans=[presetPlan()];
+  curId=plans[0].id;tab=0;render();
+});
+
+/* ---------- 主題抽屜與 Claude 講解 ---------- */
+let ctx=null, turns=[], ctl=null;
+function findTopic(id){const p=cur();for(const s of p.subjects){const t=s.topics.find(x=>x.id===id);if(t)return{p,s,t}}return null}
+function openDrawer(id){
+  const c=findTopic(id); if(!c)return; ctx=c; ctl?.abort(); turns=[];
+  $("dSubj").textContent=`${c.s.name} · ${+c.t.hours} 小時${c.t.hot?" · 關鍵":""}`;
+  $("dTitle").textContent=c.t.title;
+  $("dPts").innerHTML=String(c.t.points||"").split(/[、,，]/).filter(Boolean).map(x=>`<span>${esc(x.trim())}</span>`).join("");
+  $("dLinks").innerHTML=`<a class="btn sm" href="${yt(c.t.q||c.s.name+" "+c.t.title)}" target="_blank" rel="noopener">YouTube 找教學</a>
+    <a class="btn ghost sm" href="${yt(c.s.name+" "+c.t.title+" 考古題")}" target="_blank" rel="noopener">找題目解析</a>`;
+  $("aOut").innerHTML="";$("aWho").textContent="";$("aErr").hidden=true;$("follow").hidden=true;$("aStop").hidden=true;
+  $("vidUrls").value="";$("vidText").value="";$("vids").innerHTML="";$("findNote").textContent="";$("srcBox").open=false;updSrc();
+  $("findVid").hidden=!aiCfg.yt||!!window.claude;
+  $("depth").value=lsGet("zixue-depth","deep");
+  if(typeof pCtl!=="undefined")pCtl?.abort();$("quiz").hidden=true;$("quiz").innerHTML="";
+  const note=c.p.notes?.[c.t.id];
+  $("aExplain").textContent=note?"重新產生講義":"產生濃縮講義";
+  if(note){
+    curVids=note.videos||[];
+    $("aOut").innerHTML=md(note.text,curVids);
+    $("aWho").textContent=`已存的講義 · 由 ${note.provider} 產生 · ${new Date(note.at).toLocaleDateString("zh-TW")}${curVids.length?` · 參考 ${curVids.length} 部影片`:""}`;
+    turns=[{role:"user",content:`這是「${c.t.title}」的濃縮講義，我接下來會追問。`},{role:"assistant",content:note.text}];
+    $("follow").hidden=false;
+  } else curVids=[];
+  const mode=c.t.mode||"lesson";
+  $("lessonBox").hidden=mode!=="lesson";
+  if(typeof langCtl!=="undefined")langCtl?.abort();
+  if(mode!=="lesson"){
+    $("dLinks").innerHTML=`<a class="btn ghost sm" href="${yt(c.t.q||c.s.name+" "+c.t.title)}" target="_blank" rel="noopener">YouTube 找素材</a>`;
+    renderLangTool(c);
+  } else $("langTool").hidden=true;
+  syncAi();
+  $("scrim").hidden=false;$("drawer").hidden=false;$("dClose").focus();
+}
+function closeDrawer(){ctl?.abort();pCtl?.abort();$("scrim").hidden=true;$("drawer").hidden=true}
+$("dClose").onclick=closeDrawer;$("scrim").onclick=closeDrawer;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("drawer").hidden)closeDrawer()});
+function syncAi(){const ok=chain().length>0;$("aiBtns").hidden=!ok;$("aiOff").hidden=ok}
+
+/* ---------- 多家 AI 與自動備援 ---------- */
+const PROV={
+  claude:{label:"Claude（在 Claude 裡開啟時）",kind:"claude",note:"用你的 Claude 額度"},
+  gemini:{label:"Google Gemini",kind:"gemini",base:"https://generativelanguage.googleapis.com/v1beta",model:"gemini-2.5-flash",keyUrl:"https://aistudio.google.com/apikey",note:"有免費額度",free:true},
+  groq:{label:"Groq",kind:"openai",base:"https://api.groq.com/openai/v1",model:"llama-3.3-70b-versatile",keyUrl:"https://console.groq.com/keys",note:"有免費額度・速度快",free:true},
+  openrouter:{label:"OpenRouter",kind:"openai",base:"https://openrouter.ai/api/v1",model:"",keyUrl:"https://openrouter.ai/keys",note:"一把金鑰用多家模型，有免費模型",free:true},
+  openai:{label:"OpenAI（ChatGPT）",kind:"openai",base:"https://api.openai.com/v1",model:"gpt-4o-mini",keyUrl:"https://platform.openai.com/api-keys",note:"依用量付費"},
+  anthropic:{label:"Anthropic API（Claude）",kind:"anthropic",base:"https://api.anthropic.com/v1",model:"claude-haiku-4-5-20251001",keyUrl:"https://console.anthropic.com/settings/keys",note:"依用量付費，不佔 Claude 訂閱額度"},
+  ollama:{label:"Ollama（本機模型）",kind:"openai",base:"http://localhost:11434/v1",model:"llama3.1",noKey:true,note:"免費・不用網路，需在電腦安裝 Ollama",free:true},
+  custom:{label:"其他 OpenAI 相容服務",kind:"openai",base:"",model:"",note:"自填網址"}
+};
+const AI_KEY="zixue-ai-v1";
+const aiCfg=lsGet(AI_KEY,null)||{order:Object.keys(PROV),p:{claude:{on:true}}};
+Object.keys(PROV).forEach(id=>{if(!aiCfg.order.includes(id))aiCfg.order.push(id)});
+const pc=id=>aiCfg.p[id]||(aiCfg.p[id]={});
+const saveAi=()=>lsSet(AI_KEY,aiCfg);
+function ready(id){
+  const P=PROV[id],c=aiCfg.p[id]||{};
+  if(!c.on)return false;
+  if(id==="claude")return !!sample;
+  return !!((c.base||P.base)&&(c.model||P.model)&&(P.noKey||c.key));
+}
+const chain=()=>aiCfg.order.filter(ready);
+
+const ERR={rate_limited:"Claude 使用量暫時到上限",session_expired:"Claude 登入已過期",quota:"額度用完或太頻繁",
+  auth:"金鑰無效或沒有權限",server:"服務暫時異常",network:"連不上（網路或瀏覽器限制）",bad_request:"請求被拒，檢查模型名稱",
+  refused:"拒絕回答這個問題",invalid_json:"產生的路線格式不完整，再按一次「規劃路線」。",prompt_too_large:"內容太長",
+  empty_completion:"沒有收到回答",no_provider:"還沒設定可用的 AI，按上方「AI 設定」加一個。",
+  not_granted:"未允許使用 Claude",sampling_disabled:"帳號無法使用 Claude"};
+const HIDE=["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
+function errText(e){
+  if(typeof e==="string")return ERR[e]||"連線中斷";
+  if(e.code==="all_failed")return "所有 AI 都失敗了 —— "+e.fails.join("；");
+  return ERR[e.code]||"連線中斷，再試一次。";
+}
+
+async function readSSE(res,onData){
+  const r=res.body.getReader(),dec=new TextDecoder();let buf="";
+  for(;;){const{value,done}=await r.read();if(done)break;buf+=dec.decode(value,{stream:true});
+    let i;while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);
+      if(line.startsWith("data:")){const d=line.slice(5).trim();if(d&&d!=="[DONE]"){let j;try{j=JSON.parse(d)}catch{continue}onData(j)}}}}
+}
+function endpoint(id){const P=PROV[id],c=pc(id);return{P,c,base:String(c.base||P.base||"").replace(/\/+$/,""),model:c.model||P.model}}
+function authHeaders(P,c){
+  if(P.kind==="anthropic")return{"x-api-key":c.key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"};
+  if(P.kind==="gemini")return{"x-goog-api-key":c.key};
+  return c.key?{authorization:"Bearer "+c.key}:{};
+}
+async function callHttp(id,turns,o={}){
+  const{P,c,base,model}=endpoint(id);
+  const headers={"content-type":"application/json",...authHeaders(P,c)};
+  let url,body,pick;
+  if(P.kind==="anthropic"){url=base+"/messages";body={model,max_tokens:8192,stream:true,messages:turns};
+    pick=d=>d.type==="content_block_delta"?(d.delta?.text||""):""}
+  else if(P.kind==="gemini"){url=`${base}/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`;
+    const contents=turns.map(t=>({role:t.role==="assistant"?"model":"user",parts:[{text:t.content}]}));
+    if(o.videos?.length){contents[contents.length-1].parts.unshift(...o.videos.map(u=>({fileData:{fileUri:u}})))}
+    body={contents};
+    if(o.videos?.length)body.generationConfig={mediaResolution:"MEDIA_RESOLUTION_LOW"};
+    pick=d=>(d.candidates?.[0]?.content?.parts||[]).filter(p=>!p.thought).map(p=>p.text||"").join("")}
+  else{url=base+"/chat/completions";body={model,stream:true,messages:turns};
+    pick=d=>d.choices?.[0]?.delta?.content||""}
+  let res;
+  try{res=await fetch(url,{method:"POST",headers,body:JSON.stringify(body),signal:o.signal})}
+  catch{throw{code:o.signal?.aborted?"cancelled":"network"}}
+  if(!res.ok){const s=res.status;throw{code:s===401||s===403?"auth":s===429?"quota":s>=500?"server":"bad_request"}}
+  let text="";
+  try{await readSSE(res,d=>{const t=pick(d);if(t){text+=t;o.onText?.({text})}})}
+  catch{throw{code:o.signal?.aborted?"cancelled":"network",text:text||undefined}}
+  if(!text.trim())throw{code:"empty_completion"};
+  return{text};
+}
+async function ask(turns,o={}){
+  const ids=o.only?[o.only]:chain();
+  if(!ids.length)throw{code:"no_provider"};
+  const fails=[];
+  for(const id of ids){
+    if(o.signal?.aborted)throw{code:"cancelled"};
+    o.onTry?.(PROV[id].label);
+    try{
+      let r;
+      if(id==="claude"){const opts={signal:o.signal,onText:o.onText};if(o.nocache)opts.cache=false;r=await sample(turns,opts)}
+      else r=await callHttp(id,turns,o);
+      return{text:r.text,truncated:!!r.truncated,provider:PROV[id].label};
+    }catch(e){
+      if(e.code==="cancelled")throw e;
+      if(e.text)throw{...e,provider:PROV[id].label};
+      if(id==="claude"&&HIDE.includes(e.code)){sample=null;syncAi()}
+      fails.push(`${PROV[id].label.replace(/（.*）/,"")}：${errText(e.code)}`);
+    }
+  }
+  throw{code:"all_failed",fails};
+}
+function parseJSON(t){
+  const f=t.match(/```(?:json)?\s*([\s\S]*?)```/);const s=f?f[1]:t;
+  try{return JSON.parse(s)}catch{}
+  const a=s.indexOf("{"),b=s.lastIndexOf("}");
+  if(a>=0&&b>a){try{return JSON.parse(s.slice(a,b+1))}catch{}}
+  throw{code:"invalid_json"};
+}
+
+/* ---------- AI 設定視窗 ---------- */
+function renderProvs(){
+  const inClaude=!!window.claude;
+  $("aiEnvNote").hidden=!inClaude;
+  $("provs").innerHTML=aiCfg.order.map((id,i)=>{
+    const P=PROV[id],c=pc(id),on=!!c.on;
+    const fields=id==="claude"
+      ?`<div class="full prov-status ${sample?"ok":""}">${sample?"目前可用":"目前不可用：只有在 Claude 裡開這一頁時才能用"}</div>`
+      :`${P.noKey?"":`<div class="field"><label class="label" for="k-${id}">API 金鑰</label><input id="k-${id}" data-k="key" data-id="${id}" type="password" autocomplete="off" value="${esc(c.key||"")}" placeholder="貼上金鑰"></div>`}
+        <div class="field"><label class="label" for="m-${id}">模型</label><input id="m-${id}" data-k="model" data-id="${id}" list="ml-${id}" value="${esc(c.model||"")}" placeholder="${esc(P.model||"按「載入模型清單」挑一個")}"><datalist id="ml-${id}"></datalist></div>
+        ${(id==="custom"||id==="ollama")?`<div class="field full"><label class="label" for="b-${id}">服務網址</label><input id="b-${id}" data-k="base" data-id="${id}" value="${esc(c.base||"")}" placeholder="${esc(P.base||"https://…/v1")}"></div>`:""}
+        <div class="full row">${P.keyUrl?`<a class="btn ghost sm" href="${P.keyUrl}" target="_blank" rel="noopener" style="font-weight:600;">${id==="gemini"?"🌐 開啟 Google AI Studio":"取得金鑰"} ↗</a>`:""}
+          <button class="btn ghost sm" type="button" data-models="${id}">載入模型清單</button>
+          <button class="btn ghost sm" type="button" data-test="${id}">測試</button>
+          <span class="prov-status" id="st-${id}"></span></div>`;
+    return `<li class="prov ${on?"":"off"}">
+      <div class="prov-top"><span class="rank">${on?i+1:""}</span><input class="check" type="checkbox" id="on-${id}" data-on="${id}" ${on?"checked":""}><label for="on-${id}">${esc(P.label)}</label><span class="tag ${P.free?"free":""}">${esc(P.note)}</span>
+        <span class="ord"><button type="button" data-mv="${id}" data-d="-1" ${i===0?"disabled":""} aria-label="往前">↑</button><button type="button" data-mv="${id}" data-d="1" ${i===aiCfg.order.length-1?"disabled":""} aria-label="往後">↓</button></span></div>
+      <div class="prov-fields">${fields}</div></li>`;
+  }).join("");
+  const ch=chain().map(id=>PROV[id].label.replace(/（.*）/,""));
+  $("aiSummary").textContent=ch.length?"使用順序："+ch.join(" → "):"尚無可用的 AI";
+}
+function openAiDlg(){renderProvs();$("ytKey").value=aiCfg.yt||"";$("qSt").textContent=pc("gemini").key?"Gemini 已設定過；貼上新金鑰可以重新設定。":"";$("qSt").className="prov-status";$("aiDlg").showModal();$("qKey").focus()}
+$("aiBtn").onclick=openAiDlg;
+document.addEventListener("click",e=>{if(e.target.closest("[data-openai]"))openAiDlg()});
+$("qGo").onclick=async()=>{
+  const key=$("qKey").value.trim(),st=$("qSt"),btn=$("qGo");
+  if(!key){st.className="prov-status bad";st.textContent="先貼上金鑰";return}
+  const c=pc("gemini");c.key=key;c.on=true;
+  aiCfg.order=["gemini",...aiCfg.order.filter(x=>x!=="gemini")];saveAi();
+  btn.disabled=true;st.className="prov-status";st.textContent="確認金鑰、挑選模型中…";
+  try{
+    const res=await fetch(PROV.gemini.base+"/models?pageSize=200",{headers:{"x-goog-api-key":key}});
+    if(!res.ok)throw{code:res.status===429?"quota":res.status>=500?"server":"auth"};
+    const names=((await res.json()).models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>m.name.replace(/^models\//,""));
+    const ver=n=>parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/)||[])[1]||0);
+    const stable=names.filter(n=>/^gemini-[\d.]+-flash$/.test(n)).sort((a,b)=>ver(b)-ver(a));
+    const other=names.filter(n=>/flash/.test(n)&&!/(image|tts|live|audio|embed|lite|exp|thinking)/.test(n)).sort((a,b)=>ver(b)-ver(a));
+    if(stable[0]||other[0])c.model=stable[0]||other[0];
+    saveAi();st.textContent=`測試 ${c.model||PROV.gemini.model} 中…`;
+    const r=await callHttp("gemini",[{role:"user",content:"請用一句繁體中文（15 字內）打招呼。"}]);
+    st.className="prov-status ok";st.textContent=`設定完成 ✓ 使用 ${c.model||PROV.gemini.model}，回覆：「${r.text.trim().slice(0,30)}」`;
+    $("qKey").value="";
+  }catch(err){
+    st.className="prov-status bad";
+    st.textContent="設定失敗："+errText(err.code||"network")+(err.code==="auth"||err.code==="bad_request"?"。確認金鑰有完整複製。":"")+(window.claude?"（在 Claude 網頁裡無法連到 Gemini，請改開電腦裡的 HTML 檔）":"");
+  }finally{btn.disabled=false;renderProvs();syncAi()}
+};
+$("ytKey").addEventListener("input",e=>{aiCfg.yt=e.target.value.trim();saveAi()});
+$("aiClose").onclick=()=>{$("aiDlg").close();syncAi()};
+$("aiDlg").addEventListener("close",syncAi);
+$("provs").addEventListener("change",e=>{
+  const el=e.target;
+  if(el.dataset.on){pc(el.dataset.on).on=el.checked;saveAi();renderProvs();const again=$("on-"+el.dataset.on);again&&again.focus()}
+});
+$("provs").addEventListener("input",e=>{
+  const el=e.target;if(!el.dataset.k)return;
+  pc(el.dataset.id)[el.dataset.k]=el.value.trim();saveAi();
+  const ch=chain().map(id=>PROV[id].label.replace(/（.*）/,""));
+  $("aiSummary").textContent=ch.length?"使用順序："+ch.join(" → "):"尚無可用的 AI";
+});
+$("provs").addEventListener("click",async e=>{
+  const el=e.target.closest("button");if(!el)return;
+  if(el.dataset.mv){const i=aiCfg.order.indexOf(el.dataset.mv),j=i+ +el.dataset.d;
+    if(j>=0&&j<aiCfg.order.length){[aiCfg.order[i],aiCfg.order[j]]=[aiCfg.order[j],aiCfg.order[i]];saveAi();renderProvs()}}
+  else if(el.dataset.test){const id=el.dataset.test,st=$("st-"+id);
+    st.className="prov-status";st.textContent="測試中…";
+    const was=pc(id).on;pc(id).on=true;
+    try{if(!ready(id))throw{code:PROV[id].noKey?"bad_request":"auth"};
+      const r=await callHttp(id,[{role:"user",content:"請用一句繁體中文（15 字內）打招呼。"}]);
+      st.className="prov-status ok";st.textContent="可用："+r.text.trim().slice(0,30)}
+    catch(err){st.className="prov-status bad";st.textContent=errText(err.code)}
+    finally{pc(id).on=was}}
+  else if(el.dataset.models){const id=el.dataset.models,st=$("st-"+id),{P,c,base}=endpoint(id);
+    st.className="prov-status";st.textContent="載入中…";
+    try{const res=await fetch(base+"/models",{headers:authHeaders(P,c)});
+      if(!res.ok)throw{code:res.status===401||res.status===403?"auth":"bad_request"};
+      const j=await res.json();
+      const names=P.kind==="gemini"
+        ?(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>m.name.replace(/^models\//,""))
+        :(j.data||[]).map(m=>m.id);
+      $("ml-"+id).innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("");
+      st.className="prov-status ok";st.textContent=`找到 ${names.length} 個模型，點「模型」欄挑選`;$("m-"+id).focus()}
+    catch(err){st.className="prov-status bad";st.textContent=errText(err.code||"network")}}
+});
+
+/* ---------- 影片來源 ---------- */
+let curVids=[];
+function ytId(u){const m=String(u).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:null}
+function readVids(){return[...new Set($("vidUrls").value.split(/\s+/).map(ytId).filter(Boolean))].slice(0,3).map(id=>"https://www.youtube.com/watch?v="+id)}
+function updSrc(){const v=readVids().length,t=$("vidText").value.trim().length;
+  $("srcCount").textContent=[v?`${v} 部影片`:"",t?`字幕 ${t} 字`:""].filter(Boolean).join(" · ")}
+$("vidUrls").addEventListener("input",updSrc);$("vidText").addEventListener("input",updSrc);
+function isoDur(s){const m=String(s).match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)||[];const h=+m[1]||0,mi=+m[2]||0,se=+m[3]||0;
+  return(h?h+":"+String(mi).padStart(2,"0"):mi)+":"+String(se).padStart(2,"0")}
+$("findVid").onclick=async()=>{
+  if(!ctx||!aiCfg.yt)return;const note=$("findNote");note.textContent="搜尋中…";$("vids").innerHTML="";
+  const q=ctx.t.q||ctx.s.name+" "+ctx.t.title;
+  try{
+    const sr=await fetch("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=6&q="+encodeURIComponent(q)+"&key="+encodeURIComponent(aiCfg.yt));
+    if(!sr.ok)throw{code:sr.status===403?"quota":sr.status===400?"auth":"server"};
+    const items=(await sr.json()).items||[];
+    const ids=items.map(i=>i.id?.videoId).filter(Boolean);
+    let dur={};
+    if(ids.length){const vr=await fetch("https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="+ids.join(",")+"&key="+encodeURIComponent(aiCfg.yt));
+      if(vr.ok)((await vr.json()).items||[]).forEach(v=>dur[v.id]=isoDur(v.contentDetails?.duration))}
+    $("vids").innerHTML=items.filter(i=>i.id?.videoId).map(i=>{const id=i.id.videoId,sn=i.snippet||{};
+      return `<li><input class="check" type="checkbox" id="v-${id}" data-vid="${id}"><label for="v-${id}">${esc(sn.title)}<small>${esc(sn.channelTitle)}${dur[id]?" · "+dur[id]:""} · <a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">預覽</a></small></label></li>`}).join("");
+    note.textContent=items.length?"勾選要濃縮的影片（最多 3 部）":"找不到影片，換個方式自己貼網址。";
+  }catch(e){note.textContent="搜尋失敗："+errText(e.code||"network")}
+};
+$("vids").addEventListener("change",e=>{const id=e.target.dataset.vid;if(!id)return;
+  const url="https://www.youtube.com/watch?v="+id;
+  let lines=$("vidUrls").value.split(/\s+/).filter(Boolean).filter(l=>ytId(l)!==id);
+  if(e.target.checked)lines.push(url);
+  $("vidUrls").value=lines.join("\n");updSrc()});
+
+function tutorPrompt(kind,src={}){
+  const{p,s,t}=ctx;
+  const base=`學習者的目標是「${p.goal||p.title}」，正在讀「${s.name}」的主題「${t.title}」（重點：${t.points||"無"}）。學習者是上班族，時間很少。請用繁體中文回答，使用簡單 Markdown（## 標題、條列、粗體、程式碼區塊），不要用 LaTeX，數學式用純文字寫。`;
+  if(kind==="quiz")return base+"\n請出 3 題練習題，由易到難，貼近考試或實際應用的題型。先列出全部題目，最後用「## 答案與解析」統一給詳解，並指出每題考的觀念與常見錯誤。";
+  const hasV=src.watch>0, hasT=!!src.text;
+  let material="";
+  if(hasV)material+=`\n我附上了 ${src.watch} 部 YouTube 教學影片（依序稱為 影片1、影片2…），請實際依據影片內容。`;
+  if(hasT)material+=`\n以下是教學影片的字幕（稱為 影片1），時間戳可用來標示片段：\n<<<字幕開始\n${src.text}\n字幕結束>>>`;
+  const from=hasV||hasT?"「影片內容」與「你自己的專業知識」":"你對這個主題的專業知識，以及優質課程與教科書通常怎麼教它";
+  const vid=hasV||hasT?`## 影片精華片段
+只列影片中真的存在、值得回看的片段，每行格式固定為「[影片1 12:30] 這段在講什麼」。不確定時間點就不要列。
+## 影片沒講清楚、我補充的
+`:"";
+  const d=src.depth||"deep";
+  if(d==="brief")return base+material+`
+請整合${from}，寫成一份 10 分鐘內讀完的濃縮講義，依序包含：
+## 一句話重點
+## 核心觀念（最多 6 點，每點 1–2 句）
+## 直覺理解（比喻、圖像化或步驟拆解）
+## 例題手算（1 題，一步一步算）
+## 最常見的陷阱與考法
+${vid}## 讀完檢查
+列 2 個能驗證自己懂了的問題（不附答案）。總長約 1200 字。`;
+  if(d==="standard")return base+material+`
+請整合${from}，寫成一份 20 分鐘讀完、讀完就能應付一般考題的講義。每個觀念都要講清楚「是什麼 → 為什麼需要 → 怎麼運作」，不要只列關鍵字。依序包含：
+## 一句話重點
+## 前置知識（讀這個主題前要先懂什麼，各用一兩句快速複習）
+## 核心觀念詳解（每個觀念用 ### 小標，含定義、原理、運作步驟）
+## 比較整理（用 Markdown 表格比較容易混淆的觀念、方法或演算法：優缺點、複雜度、適用情境）
+## 例題完整手算（2 題，由基礎到考試難度，每一步都寫出來並說明理由）
+## 考法與陷阱（常見出題方式、易錯點、判斷技巧）
+${vid}## 讀完檢查
+列 3 個能驗證自己懂了的問題（不附答案）。總長約 2500–3500 字。`;
+  return base+material+`
+請整合${from}，寫成一份完整的讀書講義，詳細程度要能取代看完整堂課：讀完的人要能自己推導、解題、應付研究所考試或實務問題。每個觀念都要講清楚「是什麼 → 為什麼需要 → 怎麼運作 → 有什麼限制」，不要只列關鍵字，寧可多寫。依序包含：
+## 一句話重點與學習地圖（這個主題在整個科目中的位置、跟前後主題的關係）
+## 前置知識快速複習
+## 核心觀念詳解（每個觀念用 ### 小標；包含定義、原理、推導或證明思路、運作步驟、邊界情況）
+## 演算法／公式／流程（若適用：逐步說明，並附虛擬碼或程式碼區塊與複雜度分析）
+## 比較整理（用 Markdown 表格比較容易混淆的觀念、方法或演算法：優缺點、複雜度、適用情境）
+## 例題完整手算（3 題：基礎題、典型考題、進階或陷阱題；每一步都寫出來並說明理由）
+## 常見考題題型清單（列出這個主題常見的出題方式與對應解題策略）
+## 易錯點與記憶技巧
+${vid}## 延伸與連結（學完後可以接著讀什麼、與其他主題的關聯）
+## 讀完檢查
+列 5 個由淺入深的問題（不附答案）。總長約 5000–7000 字，內容完整優先，不要為了精簡而省略步驟。`;
+}
+async function runTurns(fresh,meta={}){
+  ctl?.abort(); const my=ctl=new AbortController();
+  $("aErr").hidden=true;$("aStop").hidden=false;$("follow").hidden=true;
+  $("aOut").innerHTML='<p class="thinking">思考中…</p>';$("aWho").textContent="";
+  try{
+    const r=await ask(turns,{signal:my.signal,nocache:!fresh,only:meta.only,videos:meta.watch,
+      onTry:name=>{if(ctl===my)$("aWho").textContent="正在使用："+name+(meta.watch?.length?"（觀看影片中，長影片需要 1–3 分鐘）":"")},
+      onText:({text})=>{if(ctl===my)$("aOut").innerHTML=md(text,curVids)}});
+    turns.push({role:"assistant",content:r.text});
+    $("follow").hidden=false;$("aWho").textContent="由 "+r.provider+" 回答";
+    if(meta.kind==="explain"){
+      const p=ctx.p;p.notes=p.notes||{};
+      p.notes[ctx.t.id]={text:r.text,provider:r.provider,at:Date.now(),videos:curVids,depth:meta.depth};
+      scheduleSave(p);renderSubject(p);
+      $("aWho").textContent=`由 ${r.provider} 產生 · 已存起來，下次打開直接看`;$("aExplain").textContent="重新產生講義";
+    }
+    if(r.truncated){$("aErr").textContent="回答被截斷，可以追問「繼續」。";$("aErr").hidden=false}
+  }catch(e){
+    if(ctl!==my)return;
+    if(e.code==="refused"||!e.text)$("aOut").innerHTML=""; else $("aOut").innerHTML=md(e.text);
+    if(e.code!=="cancelled"){$("aErr").textContent=(e.provider?e.provider+" 中斷："+errText(e.code):errText(e));$("aErr").hidden=false}
+    turns.pop();syncAi();
+  }finally{if(ctl===my)$("aStop").hidden=true}
+}
+$("aExplain").onclick=()=>{
+  if(!ctx)return;
+  const vids=readVids();let text=$("vidText").value.trim();
+  const geminiOk=!!(pc("gemini").key&&(pc("gemini").model||PROV.gemini.model))&&!window.claude;
+  if(vids.length&&!geminiOk&&!text){
+    $("aErr").textContent="AI 要直接看影片，需要先在「AI 設定」填好 Google Gemini 金鑰（而且要用電腦裡的檔案開啟）。也可以改貼影片字幕。";
+    $("aErr").hidden=false;$("srcBox").open=true;return;
+  }
+  if(text.length>40000)text=text.slice(0,40000)+"\n（字幕過長，以下省略）";
+  const watch=vids.length&&geminiOk?vids:[];
+  curVids=watch.length?watch:(text&&vids.length?vids.slice(0,1):[]);
+  const depth=$("depth").value;lsSet("zixue-depth",depth);
+  turns=[{role:"user",content:tutorPrompt("explain",{watch:watch.length,text,depth})}];
+  runTurns(true,{kind:"explain",depth,watch:watch.length?watch:undefined,only:watch.length?"gemini":undefined});
+};
+/* ---------- 做題：出題、作答、AI 批改 ---------- */
+const TYPE_NAME={choice:"選擇題",calc:"計算題",explain:"用自己的話講",short:"簡答題"};
+const GAPS=[1,3,7,14,30];
+const dayStart=off=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()+off*864e5};
+const clip=(s,n)=>{s=String(s??"");return s.length>n?s.slice(0,n)+"…":s};
+
+function normQuestions(data){
+  const arr=Array.isArray(data)?data:Array.isArray(data?.questions)?data.questions:[];
+  return arr.map(x=>{
+    const type=TYPE_NAME[x.type]?x.type:"short";
+    const q={type,q:String(x.q||x.question||""),answer:x.answer,explanation:String(x.explanation||""),concept:String(x.concept||"")};
+    if(type==="choice"){
+      q.options=(Array.isArray(x.options)?x.options:[]).map(String).slice(0,5);
+      let a=x.answer;if(typeof a==="string"&&/^[A-Ea-e]$/.test(a.trim()))a=a.trim().toUpperCase().charCodeAt(0)-65;
+      q.answer=Number(a);if(q.options.length<2||!(q.answer>=0&&q.answer<q.options.length))q.type="short",q.answer=String(x.answer??"");
+    } else q.answer=String(q.answer??"");
+    return q;
+  }).filter(q=>q.q);
+}
+
+async function gradeAnswer(topic,it,user,signal){
+  const prompt=`你是嚴格但友善的閱卷老師，用繁體中文。主題：「${topic}」。
+題型：${TYPE_NAME[it.type]}
+題目：${it.q}
+參考答案：${it.answer}
+詳解：${it.explanation}
+學生作答：${user}
+
+判斷學生是否真的理解。${it.type==="explain"?"這是「用自己的話解釋」題：看觀念是否正確、完整、能讓外行人聽懂，不要求與參考答案用字相同。":"計算題看關鍵步驟與結果；觀念錯但矇對答案不算對。"}
+只回傳 JSON：{"correct":true,"score":85,"feedback":"2–4 句：哪裡對、哪裡錯或遺漏、下次怎麼想","gap":"若答錯，缺的觀念（10 字內）；答對填空字串"}
+score ≥ 70 且關鍵觀念正確才算 correct。`;
+  const r=await ask([{role:"user",content:prompt}],{signal,nocache:true});
+  const j=parseJSON(r.text);
+  return{correct:!!j.correct,score:Math.max(0,Math.min(100,+j.score||0)),feedback:String(j.feedback||""),gap:String(j.gap||""),provider:r.provider};
+}
+
+/* 通用做題元件：items 依序作答，每題判定後呼叫 onResult */
+function runQuiz(el,items,{topicOf,onResult,onDone,prefix,lang,doneNote}){
+  let i=0,right=0,busy=null;
+  el.hidden=false;
+  const draw=()=>{
+    if(i>=items.length){
+      el.innerHTML=`<div class="q-done"><span class="label">練習結束</span><b>${right} / ${items.length}</b><p class="note">${doneNote?doneNote(right,items.length):right===items.length?"全部答對，這個主題可以勾選完成了。":"答錯的題目已收進錯題本，明天開始會提醒你複習。"}</p></div>`;
+      onDone?.(right,items.length);return;
+    }
+    const it=items[i],id=`${prefix}-${i}`;
+    el.innerHTML=`
+      <div class="q-head"><span class="label">第 ${i+1} / ${items.length} 題 · ${TYPE_NAME[it.type]}</span>${it.concept?`<span class="tag">${esc(it.concept)}</span>`:""}</div>
+      <div class="q-bar"><i style="width:${i/items.length*100}%"></i></div>
+      ${it.topicLabel?`<p class="who">${esc(it.topicLabel)}</p>`:""}
+      ${it.listen?`<div class="row"><button class="btn sm" type="button" data-q="play">▶ 播放</button><button class="btn ghost sm" type="button" data-q="slow">慢速播放</button>${hasVoice(lang)?"":`<span class="note">這台裝置沒有這個語言的語音，請到系統設定加裝語音。</span>`}</div>`:""}
+      <div class="answer">${md(it.q)}</div>
+      ${it.type==="choice"
+        ?`<div class="opts">${it.options.map((o,k)=>`<label id="${id}-l${k}"><input type="radio" name="${id}" id="${id}-o${k}" value="${k}"><span>${String.fromCharCode(65+k)}. ${esc(o)}</span></label>`).join("")}</div>`
+        :`<textarea id="${id}-t" rows="${it.type==="calc"?6:5}" placeholder="${it.type==="explain"?"假裝在教一個完全不懂的朋友，用自己的話講清楚":"寫下答案與關鍵步驟"}"></textarea>`}
+      <div class="row q-acts"><button class="btn" type="button" data-q="submit">送出答案</button><button class="btn ghost sm" type="button" data-q="giveup">不會，看解答</button></div>
+      <div class="q-fb"></div>`;
+  };
+  const finish=(it,res)=>{
+    if(res.correct)right++;
+    onResult?.(it,res);
+    const fb=el.querySelector(".q-fb");
+    fb.innerHTML=`<div class="fb ${res.correct?"good":"bad"}">
+      <span class="verdict">${res.correct?"答對了":"還沒掌握"}${res.score!=null?` · ${res.score} 分`:""}</span>
+      ${res.feedback?`<div>${esc(res.feedback)}</div>`:""}
+      ${it.type!=="choice"?`<details ${res.correct?"":"open"}><summary>參考答案與詳解</summary><div class="answer">${md(String(it.answer))}${md(it.explanation)}</div></details>`:`<div class="answer">${it.listen?`<p><strong>原文：</strong>${esc(it.listen)}</p>`:""}${md(it.explanation)}</div>`}
+      ${res.correct||doneNote?"":`<p class="note">已加入錯題本${res.gap?`：缺「${esc(res.gap)}」`:""}。</p>`}
+    </div>
+    <div class="row"><button class="btn" type="button" data-q="next">${i+1<items.length?"下一題":"看結果"}</button></div>`;
+    el.querySelector(".q-acts").hidden=true;
+    el.querySelectorAll("input,textarea").forEach(x=>x.disabled=true);
+  };
+  el.onclick=async e=>{
+    const b=e.target.closest("[data-q]");if(!b)return;
+    const it=items[i],id=`${prefix}-${i}`;
+    if(b.dataset.q==="play"||b.dataset.q==="slow"){speak(it.listen,lang,b.dataset.q==="slow"?.7:1);return}
+    if(b.dataset.q==="next"){i++;draw();el.scrollIntoView({block:"nearest"});return}
+    if(b.dataset.q==="self"){finish(it,{correct:b.dataset.v==="1",userAnswer:el.querySelector("textarea")?.value||"",feedback:"（自行判定）"});return}
+    if(it.type==="choice"){
+      const sel=el.querySelector(`input[name="${id}"]:checked`);
+      if(!sel&&b.dataset.q==="submit")return;
+      const k=sel?+sel.value:-1;
+      el.querySelector(`#${id}-l${it.answer}`)?.classList.add("right");
+      if(k>=0&&k!==it.answer)el.querySelector(`#${id}-l${k}`)?.classList.add("wrong");
+      finish(it,{correct:k===it.answer,userAnswer:k>=0?String.fromCharCode(65+k):"不會",feedback:""});return;
+    }
+    const user=el.querySelector("textarea").value.trim();
+    if(b.dataset.q==="giveup"||!user){finish(it,{correct:false,userAnswer:user||"不會",feedback:""});return}
+    el.querySelector(".q-acts").hidden=true;
+    const fb=el.querySelector(".q-fb");fb.innerHTML='<p class="thinking">批改中…</p>';
+    busy?.abort();busy=new AbortController();
+    try{
+      const g=await gradeAnswer(topicOf(it),it,user,busy.signal);
+      finish(it,{...g,userAnswer:user});
+    }catch(err){
+      if(err.code==="cancelled")return;
+      fb.innerHTML=`<div class="fb"><span class="err">AI 批改失敗：${esc(errText(err))}</span>
+        <details open><summary>參考答案與詳解</summary><div class="answer">${md(String(it.answer))}${md(it.explanation)}</div></details>
+        <div class="row"><span class="note">對照後自己判定：</span><button class="btn sm" type="button" data-q="self" data-v="1">我答對了</button><button class="btn ghost sm" type="button" data-q="self" data-v="0">我答錯了</button></div></div>`;
+    }
+  };
+  draw();
+}
+
+function addMistake(p,s,t,it,res){
+  p.mistakes=p.mistakes||[];
+  p.mistakes.push({id:"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),topicId:t.id,subject:s.name,topic:t.title,
+    type:it.type,q:clip(it.q,1500),options:it.options,answer:it.type==="choice"?it.answer:clip(it.answer,1500),explanation:clip(it.explanation,2000),
+    concept:res.gap||it.concept||"",last:clip(res.userAnswer,800),feedback:clip(res.feedback,600),stage:0,due:dayStart(1),created:Date.now()});
+  if(p.mistakes.length>500)p.mistakes.splice(0,p.mistakes.length-500);
+}
+
+let pCtl=null;
+$("aPractice").onclick=async()=>{
+  if(!ctx)return;const{p,s,t}=ctx,box=$("quiz");
+  pCtl?.abort();const my=pCtl=new AbortController();
+  box.hidden=false;box.onclick=null;box.innerHTML='<p class="thinking">出題中，約 20–60 秒…</p>';box.scrollIntoView({block:"nearest"});
+  const note=p.notes?.[t.id]?.text;
+  const prompt=`學習者的目標是「${p.goal||p.title}」，正在讀「${s.name}」的主題「${t.title}」（重點：${t.points||"無"}）。用繁體中文出題，數學用純文字，不用 LaTeX。
+${note?`出題範圍以學習者剛讀完的講義為主：\n<<<講義\n${note.slice(0,14000)}\n講義>>>\n`:""}
+請出 5 題練習題，檢驗是否「真的會用」而不是背誦，由易到難：
+- 2 題選擇題（type "choice"，4 個選項；錯誤選項要是常見誤解）
+- 2 題計算或應用題（type "calc"，貼近考試題型，要有具體數字或情境）
+- 1 題「用自己的話講」（type "explain"，請學習者把核心觀念解釋給外行人聽）
+只回傳 JSON：
+{"questions":[{"type":"choice","q":"題目","options":["選項一","選項二","選項三","選項四"],"answer":0,"explanation":"為什麼選它、其他選項錯在哪","concept":"考的觀念（10 字內）"},{"type":"calc","q":"題目","answer":"標準答案與關鍵步驟","explanation":"完整詳解","concept":"…"}]}
+choice 的 answer 是正確選項的索引（0 起算）。`;
+  try{
+    const r=await ask([{role:"user",content:prompt}],{signal:my.signal,nocache:true,
+      onTry:name=>{if(pCtl===my)box.innerHTML=`<p class="thinking">${esc(name.replace(/（.*）/,""))} 出題中，約 20–60 秒…</p>`}});
+    if(pCtl!==my||ctx?.t!==t)return;
+    const items=normQuestions(parseJSON(r.text));
+    if(!items.length)throw{code:"invalid_json"};
+    runQuiz(box,items,{prefix:"pq"+Date.now().toString(36),topicOf:()=>t.title,
+      onResult:(it,res)=>{if(!res.correct){addMistake(p,s,t,it,res);scheduleSave(p);renderSummary(p)}},
+      onDone:()=>{scheduleSave(p);renderSummary(p)}});
+  }catch(err){
+    if(pCtl!==my||err.code==="cancelled")return;
+    box.innerHTML=`<p class="err">出題失敗：${esc(errText(err))}</p><div class="row"><button class="btn sm" type="button" id="pRetry">再試一次</button></div>`;
+    $("pRetry").onclick=()=>$("aPractice").click();
+  }
+};
+
+/* ---------- 錯題本與間隔複習 ---------- */
+function reviewBlock(p){
+  const ms=p.mistakes||[],now=Date.now();
+  const active=ms.filter(m=>!m.mastered),mastered=ms.length-active.length;
+  const cards=p.cards||[],cDue=cards.filter(c=>!c.mastered&&c.due<=now).length;
+  const due={length:active.filter(m=>m.due<=now).length+cDue};
+  if(cards.length)return `<div class="review ${due.length?"due":""}">
+    <div class="label">今日複習</div>
+    <div><span class="big">${due.length}</span> 項到期 <span class="note">· 單字卡 ${cDue}／${cards.length} · 錯題 ${due.length-cDue}／${active.length}</span></div>
+    <div class="row"><button class="btn sm ${due.length?"hl":"ghost"}" type="button" data-rev="due" ${due.length?"":"disabled"}>開始複習</button><button class="btn ghost sm" type="button" data-rev="book">錯題本</button></div>
+  </div>`;
+  if(!ms.length)return `<div class="review"><div class="label">今日複習</div><p class="note">做練習題時答錯的題目會收進錯題本，並在 1、3、7、14、30 天後提醒你重做。</p></div>`;
+  return `<div class="review ${due.length?"due":""}">
+    <div class="label">今日複習</div>
+    <div><span class="big">${due.length}</span> 題到期 <span class="note">· 錯題本 ${active.length} 題 · 已精熟 ${mastered} 題</span></div>
+    <div class="row"><button class="btn sm ${due.length?"hl":"ghost"}" type="button" data-rev="due" ${due.length?"":"disabled"}>開始複習</button><button class="btn ghost sm" type="button" data-rev="book">錯題本</button></div>
+  </div>`;
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-rev],[data-revmode]");if(!b)return;
+  openReview(b.dataset.rev||b.dataset.revmode);
+});
+$("revClose").onclick=()=>$("revDlg").close();
+$("revDlg").addEventListener("close",()=>render());
+function openReview(mode){
+  const p=cur(),ms=p.mistakes||[],now=Date.now();
+  $("revTabDue").setAttribute("aria-pressed",mode==="due");$("revTabBook").setAttribute("aria-pressed",mode==="book");
+  const body=$("revBody");body.onclick=null;
+  if(mode==="due"&&!openReview.skipCards){
+    const cDue=(p.cards||[]).filter(c=>!c.mastered&&c.due<=now).sort((a,b)=>a.due-b.due).slice(0,30);
+    if(cDue.length){
+      $("revTitle").textContent="今日複習 · 單字卡";
+      $("revInfo").textContent=`共 ${cDue.length} 張。先看正面想意思，再翻面；誠實按「記得／忘記」。`;
+      runFlashcards(body,cDue,p,()=>{openReview.skipCards=true;openReview("due");openReview.skipCards=false});
+      if(!$("revDlg").open)$("revDlg").showModal();
+      return;
+    }
+  }
+  if(mode==="due"){
+    const due=ms.filter(m=>!m.mastered&&m.due<=now).sort((a,b)=>a.due-b.due).slice(0,20);
+    $("revTitle").textContent="今日複習";
+    $("revInfo").textContent=due.length?`共 ${due.length} 題。答對會延後到下一輪（1→3→7→14→30 天），答錯就從明天重來。`:"今天沒有到期的題目。";
+    body.innerHTML=due.length?'<div class="quiz" id="revQuiz"></div>':"";
+    if(due.length)runQuiz($("revQuiz"),due.map(m=>({...m,topicLabel:`${m.subject} · ${m.topic}${m.last?` · 上次作答：${clip(m.last,40)}`:""}`})),{
+      prefix:"rv"+Date.now().toString(36),topicOf:it=>it.topic,
+      onResult:(it,res)=>{
+        const m=ms.find(x=>x.id===it.id);if(!m)return;
+        if(res.correct){m.stage=(m.stage||0)+1;if(m.stage>=GAPS.length){m.mastered=true;m.due=null}else m.due=dayStart(GAPS[m.stage])}
+        else{m.stage=0;m.due=dayStart(1);if(res.gap)m.concept=res.gap}
+        m.last=clip(res.userAnswer,800);m.feedback=clip(res.feedback,600);m.reviewed=Date.now();
+        scheduleSave(p);
+      },
+      onDone:(r,n)=>{$("revInfo").textContent=`這輪答對 ${r} / ${n}。答對的題目已延後，答錯的明天再練。`}
+    });
+  } else {
+    $("revTitle").textContent="錯題本";
+    const list=[...ms].sort((a,b)=>(!!a.mastered-!!b.mastered)||((a.due||0)-(b.due||0)));
+    $("revInfo").textContent=list.length?`共 ${list.length} 題，依到期日排序。`:"錯題本是空的。";
+    body.innerHTML=`<ul class="book">${list.map(m=>`<li>
+      <div class="meta"><b>${esc(m.subject)} · ${esc(m.topic)}</b>${m.concept?`<span class="tag">${esc(m.concept)}</span>`:""}
+        <span class="stage" title="已通過 ${m.stage||0} / ${GAPS.length} 輪">${GAPS.map((_,k)=>`<i class="${k<(m.stage||0)||m.mastered?"on":""}"></i>`).join("")}</span>
+        <span>${m.mastered?"已精熟":m.due<=now?"今天到期":"下次："+new Date(m.due).toLocaleDateString("zh-TW")}</span></div>
+      <div>${esc(clip(m.q.replace(/\s+/g," "),90))}</div>
+      <details><summary>看題目、我的作答與詳解</summary><div class="answer">${md(m.q)}
+        ${m.type==="choice"?`<p><strong>正解：</strong>${String.fromCharCode(65+m.answer)}. ${esc(m.options?.[m.answer]||"")}</p>`:`<p><strong>參考答案：</strong></p>${md(String(m.answer))}`}
+        <p><strong>我上次的作答：</strong>${esc(m.last||"")}</p>${m.feedback?`<blockquote>${esc(m.feedback)}</blockquote>`:""}${md(m.explanation)}</div></details>
+      <div class="row"><button class="btn ghost sm" type="button" data-mdue="${m.id}">排到今天複習</button><button class="danger" type="button" data-mdel="${m.id}">刪除</button></div>
+    </li>`).join("")}</ul>`;
+    body.onclick=e=>{
+      const d=e.target.closest("[data-mdel],[data-mdue]");if(!d)return;
+      if(d.dataset.mdel){p.mistakes=ms.filter(x=>x.id!==d.dataset.mdel)}
+      else{const m=ms.find(x=>x.id===d.dataset.mdue);if(m){m.mastered=false;m.due=Date.now()}}
+      scheduleSave(p);openReview("book");
+    };
+  }
+  if(!$("revDlg").open)$("revDlg").showModal();
+}
+$("aStop").onclick=()=>ctl?.abort();
+$("follow").onsubmit=e=>{e.preventDefault();const q=$("followQ").value.trim();if(!q)return;
+  $("followQ").value="";turns=turns.slice(-8);if(turns[0]?.role!=="user")turns.shift();
+  turns.push({role:"user",content:q});runTurns(false)};
+
+function md(src,vids=[]){
+  const toSec=ts=>ts.split(":").reduce((a,x)=>a*60+(+x),0);
+  const inline=s=>esc(s).replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
+    .replace(/\[影片\s*(\d+)\s*(\d{1,2}:\d{2}(?::\d{2})?)\]/g,(m,n,ts)=>{const u=vids[+n-1];
+      return u?`<a class="ts" href="${u}&t=${toSec(ts)}s" target="_blank" rel="noopener">▶ 影片${n} ${ts}</a>`:`<span class="ts">影片${n} ${ts}</span>`});
+  let out="",list=null,code=null,tbl=null;
+  const flushT=()=>{if(!tbl)return;const cells=r=>r.replace(/^\s*\||\|\s*$/g,"").split("|").map(c=>inline(c.trim()));
+    const rows=tbl.filter(r=>!/^\s*\|?\s*:?-{2,}/.test(r));const[h,...b]=rows;
+    out+=`<div class="tbl"><table><thead><tr>${cells(h).map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${b.map(r=>`<tr>${cells(r).map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;tbl=null};
+  const close=()=>{flushT();if(list){out+=`</${list}>`;list=null}};
+  for(const l of String(src).split("\n")){
+    if(l.trim().startsWith("```")){if(code===null){close();code=""}else{out+=`<pre><code>${esc(code)}</code></pre>`;code=null}continue}
+    if(code!==null){code+=l+"\n";continue}
+    if(/^\s*\|.*\|\s*$/.test(l)){if(list){out+=`</${list}>`;list=null}(tbl=tbl||[]).push(l);continue}
+    flushT();
+    let m;
+    if((m=l.match(/^(#{1,2})\s+(.*)/))){close();out+=`<h3>${inline(m[2])}</h3>`}
+    else if((m=l.match(/^#{3,6}\s+(.*)/))){close();out+=`<h4>${inline(m[1])}</h4>`}
+    else if((m=l.match(/^\s*>\s?(.*)/))){close();out+=`<blockquote>${inline(m[1])}</blockquote>`}
+    else if((m=l.match(/^\s*[-*•]\s+(.*)/))){if(list!=="ul"){close();out+="<ul>";list="ul"}out+=`<li>${inline(m[1])}</li>`}
+    else if((m=l.match(/^\s*\d+[.)]\s+(.*)/))){if(list!=="ol"){close();out+="<ol>";list="ol"}out+=`<li>${inline(m[1])}</li>`}
+    else if(!l.trim())close();
+    else{close();out+=`<p>${inline(l)}</p>`}
+  }
+  if(code!==null)out+=`<pre><code>${esc(code)}</code></pre>`;close();return out;
+}
+
+/* ---------- 語言模式 ---------- */
+const MODE_NAME={lesson:"講義",vocab:"單字卡",reading:"閱讀",listening:"聽寫",speaking:"跟讀",writing:"寫作"};
+const SKILL_NAME={vocab:"單字",grammar:"文法",reading:"閱讀",listening:"聽力"};
+const LANG_CODE={英文:"en-US",英語:"en-US",日文:"ja-JP",日語:"ja-JP",韓文:"ko-KR",韓語:"ko-KR",西班牙文:"es-ES",法文:"fr-FR",德文:"de-DE",義大利文:"it-IT",泰文:"th-TH",越南文:"vi-VN",印尼文:"id-ID",俄文:"ru-RU",葡萄牙文:"pt-PT",粵語:"zh-HK",廣東話:"zh-HK"};
+let langCtl=null,voices=[];
+if("speechSynthesis" in window){const lv=()=>{voices=speechSynthesis.getVoices()};lv();speechSynthesis.onvoiceschanged=lv}
+function pickVoice(lang){if(!lang)return null;const base=lang.split("-")[0].toLowerCase();
+  const same=voices.filter(v=>v.lang&&v.lang.replace("_","-").toLowerCase().startsWith(base));
+  return same.find(v=>v.lang.replace("_","-")===lang&&/natural|online|google|premium|enhanced/i.test(v.name))||same.find(v=>v.lang.replace("_","-")===lang)||same[0]||null}
+function hasVoice(lang){return !("speechSynthesis" in window)?false:(!voices.length||!!pickVoice(lang))}
+function speak(text,lang,rate=1){
+  if(!("speechSynthesis" in window)||!text)return;
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang||"en-US";const v=pickVoice(lang);if(v)u.voice=v;u.rate=rate;speechSynthesis.speak(u);
+}
+const langOf=p=>p.lang?.code||"en-US";
+function langBase(p){
+  const L=p.lang||{};
+  return `學習者母語是繁體中文，正在學「${L.name||"外語"}」。目標：${p.goal||p.title}。程度：${L.levelDesc||"未說明"}${L.diag?`；診斷弱項：${weakList(L.diag).join("、")}`:""}。`;
+}
+function weakList(d){return Object.entries(d||{}).sort((a,b)=>a[1]-b[1]).filter(([,v])=>v<75).map(([k,v])=>`${SKILL_NAME[k]||k}（${v}%）`)}
+function skillsBlock(p){
+  const d=p.lang?.diag;if(!d)return "";
+  const min=Math.min(...Object.values(d));
+  return `<div class="skills"><div class="label">能力診斷 · 紅色是優先加強</div>${Object.entries(SKILL_NAME).filter(([k])=>d[k]!=null).map(([k,n])=>
+    `<div class="skill ${d[k]===min&&d[k]<75?"weak":""}"><span>${n}</span><span class="bar"><i style="width:${d[k]}%"></i></span><span>${d[k]}%</span></div>`).join("")}</div>`;
+}
+
+/* 逐字比對：有空白的語言比單字，其餘比字元 */
+function diffTokens(ref,got){
+  const spaced=/\s/.test(ref.trim());
+  const norm=s=>String(s).toLowerCase().replace(/[.,!?;:"'“”‘’。、，！？「」『』（）()\-…~～]/g," ");
+  const tok=s=>spaced?norm(s).split(/\s+/).filter(Boolean):[...norm(s).replace(/\s+/g,"")];
+  const A=tok(ref),B=tok(got),n=A.length,m=B.length;
+  const L=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)L[i][j]=A[i]===B[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  let i=0,j=0,html="";const sep=spaced?" ":"";
+  while(i<n||j<m){
+    if(i<n&&j<m&&A[i]===B[j]){html+=`<span class="ok">${esc(A[i])}</span>${sep}`;i++;j++}
+    else if(j<m&&(i>=n||L[i][j+1]>=L[i+1][j])){html+=`<span class="extra">${esc(B[j])}</span>${sep}`;j++}
+    else{html+=`<span class="miss">${esc(A[i])}</span>${sep}`;i++}
+  }
+  return{html,score:n?Math.round(L[0][0]/Math.max(n,m)*100):0};
+}
+
+function addCards(p,s,t,list){
+  p.cards=p.cards||[];const have=new Set(p.cards.map(c=>c.front));let n=0;
+  for(const c of list){const front=String(c.front||c.word||"").trim();if(!front||have.has(front))continue;have.add(front);n++;
+    p.cards.push({id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),topicId:t.id,topic:t.title,subject:s.name,
+      front,reading:String(c.reading||""),meaning:String(c.meaning||""),example:String(c.example||""),exampleTr:String(c.exampleTr||""),
+      stage:0,due:Date.now(),created:Date.now()})}
+  if(p.cards.length>2000)p.cards.splice(0,p.cards.length-2000);
+  scheduleSave(p);renderSummary(p);return n;
+}
+function runFlashcards(el,cards,p,onDone){
+  let i=0;const lang=langOf(p);
+  const draw=()=>{
+    if(i>=cards.length){el.innerHTML=`<div class="q-done"><span class="label">單字卡完成</span><b>${cards.length} 張</b><div class="row"><button class="btn" type="button" data-f="done">繼續</button></div></div>`;return}
+    const c=cards[i];
+    el.innerHTML=`<div class="q-bar"><i style="width:${i/cards.length*100}%"></i></div>
+      <div class="flash"><span class="label">${i+1} / ${cards.length} · ${esc(c.topic||"")}</span>
+        <div class="front">${esc(c.front)}</div>
+        <div class="row"><button class="say" type="button" data-f="say">▶</button><button class="btn sm" type="button" data-f="flip">翻面</button></div>
+        <div class="back" hidden>${c.reading?`<div class="note">${esc(c.reading)}</div>`:""}<div><strong>${esc(c.meaning)}</strong></div>
+          ${c.example?`<p>${esc(c.example)} <button class="say" type="button" data-f="sayex">▶</button><br><span class="note">${esc(c.exampleTr)}</span></p>`:""}
+          <div class="row"><button class="btn ghost" type="button" data-f="0">忘記了</button><button class="btn" type="button" data-f="1">記得</button></div></div>
+      </div>`;
+    speak(c.front,lang);
+  };
+  el.onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;const c=cards[i],f=b.dataset.f;
+    if(f==="done"){onDone?.();return}
+    if(f==="say")return speak(c.front,lang);
+    if(f==="sayex")return speak(c.example,lang);
+    if(f==="flip"){el.querySelector(".back").hidden=false;b.hidden=true;return}
+    const m=(p.cards||[]).find(x=>x.id===c.id);
+    if(m){if(f==="1"){m.stage=(m.stage||0)+1;if(m.stage>=GAPS.length){m.mastered=true;m.due=null}else m.due=dayStart(GAPS[m.stage])}else{m.stage=0;m.due=dayStart(1)}scheduleSave(p)}
+    i++;draw();
+  };
+  draw();
+}
+
+async function langJSON(prompt,box,label){
+  langCtl?.abort();const my=langCtl=new AbortController();
+  box.innerHTML=`<p class="thinking">${label}中…</p>`;
+  const r=await ask([{role:"user",content:prompt}],{signal:my.signal,nocache:true,
+    onTry:n=>{if(langCtl===my)box.innerHTML=`<p class="thinking">${esc(n.replace(/（.*）/,""))} ${label}中…</p>`}});
+  if(langCtl!==my)throw{code:"cancelled"};
+  return parseJSON(r.text);
+}
+function langFail(box,err,retry){
+  if(err.code==="cancelled")return;
+  box.innerHTML=`<p class="err">失敗：${esc(errText(err))}</p><div class="row"><button class="btn sm" type="button">再試一次</button></div>`;
+  box.querySelector("button").onclick=retry;
+}
+
+function renderLangTool(c){
+  const{p,s,t}=c,el=$("langTool"),mode=t.mode,lang=langOf(p);
+  el.hidden=false;
+  const ok=chain().length>0;
+  const intro={vocab:"產生這個主題最常用的單字卡，加入每日複習。",reading:"AI 依你的程度寫一篇短文：比你目前稍難一點點，讀起來才有進步。",
+    listening:"聽一句、打一句，系統逐字比對你漏聽的地方。",speaking:"聽標準發音 → 跟著唸 → 語音辨識比對。",writing:"依主題寫幾句話，AI 修改並解釋每個錯誤。"}[mode];
+  const btnLabel={vocab:"產生單字卡",reading:"產生閱讀文章",listening:"產生聽寫句",speaking:"產生跟讀句",writing:"產生寫作題"}[mode];
+  el.innerHTML=`<div class="label">${MODE_NAME[mode]}練習</div><p class="intro">${intro}</p>
+    ${mode==="listening"?`<div class="field"><label class="label" for="ltYt">或用 YouTube 影片當素材（選填，需要 Gemini）</label><input id="ltYt" placeholder="https://www.youtube.com/watch?v=…" style="background:var(--sheet-2);border:1px solid var(--rule);border-radius:6px;padding:6px 8px"></div>`:""}
+    ${ok?`<div class="row"><button class="btn" type="button" id="ltGo">${btnLabel}</button></div>`:`<p class="note">還沒有可用的 AI。 <button class="btn sm hl" type="button" data-openai="1">設定 Gemini</button></p>`}
+    ${"speechSynthesis" in window&&!hasVoice(lang)?`<p class="note">這台裝置沒有 ${esc(p.lang?.name||lang)} 的語音，朗讀可能不正確。Windows：設定 → 時間與語言 → 語音；iPhone：設定 → 輔助使用 → 朗讀內容 → 聲音。</p>`:""}
+    <div id="ltOut" class="lang-tool"></div>`;
+  const go=$("ltGo");if(go)go.onclick=()=>LANG_TOOLS[mode](c,$("ltOut"));
+}
+
+const LANG_TOOLS={
+  async vocab(c,box){
+    const{p,s,t}=c,lang=langOf(p);
+    try{
+      const d=await langJSON(`${langBase(p)}
+主題：「${t.title}」（重點：${t.points||"無"}）。挑出這個主題最常用、最值得先背的 15 個單字或片語，依實用度排序。
+只回傳 JSON：{"cards":[{"front":"目標語言原文","reading":"讀音（日文假名／中文拼音／英文音標，沒有就空字串）","meaning":"繁中意思","example":"簡短例句（目標語言）","exampleTr":"例句中文"}]}`,box,"挑選單字");
+      const list=(d.cards||[]).filter(x=>x.front);if(!list.length)throw{code:"invalid_json"};
+      box.innerHTML=`<ul class="vocab-list">${list.map((x,k)=>`<li><input class="check" type="checkbox" id="vc-${k}" checked><label for="vc-${k}"><b>${esc(x.front)}</b> <small>${esc(x.reading||"")}</small><br>${esc(x.meaning)}<br><small>${esc(x.example||"")} ${esc(x.exampleTr||"")}</small></label><button class="say" type="button" data-say="${k}">▶</button></li>`).join("")}</ul>
+        <div class="row"><button class="btn hl" type="button" id="vcAdd">加入複習</button><span class="note" id="vcNote"></span></div>`;
+      box.onclick=e=>{const b=e.target.closest("[data-say]");if(b)speak(list[+b.dataset.say].front,lang)};
+      $("vcAdd").onclick=()=>{const picked=list.filter((_,k)=>$("vc-"+k).checked);const n=addCards(p,s,t,picked);
+        $("vcNote").textContent=`已加入 ${n} 張（重複的略過），在左側「今日複習」開始背。`;$("vcAdd").disabled=true};
+    }catch(err){langFail(box,err,()=>LANG_TOOLS.vocab(c,box))}
+  },
+  async reading(c,box){
+    const{p,s,t}=c,lang=langOf(p);
+    try{
+      const d=await langJSON(`${langBase(p)}
+主題：「${t.title}」（重點：${t.points||"無"}）。寫一篇分級閱讀短文：難度略高於學習者目前程度（大約 95% 的字看得懂），內容實用有趣。長度：初學者 80–150 字，中級以上 200–350 字。
+只回傳 JSON：{"title":"標題（目標語言）","text":"全文（目標語言，可分段）","translation":"全文繁中翻譯","vocab":[{"front":"生字","reading":"讀音","meaning":"繁中意思","example":"文中的句子","exampleTr":"中文"}],"questions":[{"type":"choice","q":"理解題（繁中）","options":["","","",""],"answer":0,"explanation":"根據文中哪一句","concept":"細節／推論／主旨"}]}
+vocab 6–10 個，questions 3 題。`,box,"寫文章");
+      if(!d.text)throw{code:"invalid_json"};
+      const vocab=(d.vocab||[]).filter(x=>x.front),qs=normQuestions({questions:d.questions||[]});
+      box.innerHTML=`<h4 style="margin:0">${esc(d.title||"")}</h4>
+        <div class="row"><button class="btn sm" type="button" data-r="play">▶ 朗讀全文</button><button class="btn ghost sm" type="button" data-r="slow">慢速</button><button class="btn ghost sm" type="button" data-r="stop">停止</button></div>
+        <div class="passage">${esc(d.text)}</div>
+        <details><summary>看中文翻譯（先自己讀完再看）</summary><p>${esc(d.translation||"")}</p></details>
+        ${vocab.length?`<div class="label">生字</div><ul class="vocab-list">${vocab.map((x,k)=>`<li><button class="say" type="button" data-say="${k}">▶</button><span><b>${esc(x.front)}</b> <small>${esc(x.reading||"")}</small> ${esc(x.meaning)}</span><button class="btn ghost sm" type="button" data-add="${k}">＋卡片</button></li>`).join("")}</ul>`:""}
+        ${qs.length?`<div class="row"><button class="btn" type="button" data-r="quiz">理解測驗（${qs.length} 題）</button></div><div class="quiz" id="rdQuiz" hidden></div>`:""}`;
+      box.onclick=e=>{const b=e.target.closest("[data-r],[data-say],[data-add]");if(!b)return;
+        if(b.dataset.say)return speak(vocab[+b.dataset.say].front,lang);
+        if(b.dataset.add){const n=addCards(p,s,t,[vocab[+b.dataset.add]]);b.textContent=n?"已加入":"已存在";b.disabled=true;return}
+        const r=b.dataset.r;
+        if(r==="play"||r==="slow")speak(d.text,lang,r==="slow"?.75:1);
+        else if(r==="stop")speechSynthesis?.cancel();
+        else if(r==="quiz"){b.hidden=true;runQuiz($("rdQuiz"),qs,{prefix:"rd"+Date.now().toString(36),lang,topicOf:()=>t.title,
+          onResult:(it,res)=>{if(!res.correct){addMistake(p,s,t,it,res);scheduleSave(p);renderSummary(p)}}})}
+      };
+    }catch(err){langFail(box,err,()=>LANG_TOOLS.reading(c,box))}
+  },
+  async listening(c,box){
+    const{p,s,t}=c,lang=langOf(p);
+    const url=$("ltYt")?.value.trim(),vid=url&&ytId(url)?"https://www.youtube.com/watch?v="+ytId(url):null;
+    try{
+      let d;
+      if(vid){
+        if(!pc("gemini").key||window.claude)throw{code:"auth",msg:"用影片當素材需要在本機檔設定 Gemini"};
+        langCtl?.abort();const my=langCtl=new AbortController();
+        box.innerHTML='<p class="thinking">Gemini 看影片、挑聽寫句中，約 1–2 分鐘…</p>';
+        const r=await ask([{role:"user",content:`${langBase(p)}
+請看這部影片，挑出 8 句最適合學習者程度、發音清楚的句子當聽寫練習（依影片時間順序）。
+只回傳 JSON：{"sentences":[{"text":"影片中實際說的原文","tr":"繁中翻譯","start":"m:ss 開始時間"}]}`}],{signal:my.signal,nocache:true,only:"gemini",videos:[vid]});
+        if(langCtl!==my)return;
+        d=parseJSON(r.text);
+      } else {
+        d=await langJSON(`${langBase(p)}
+主題：「${t.title}」（重點：${t.points||"無"}）。寫 8 句聽寫練習用的句子，連起來是一段自然的日常對話或短敘述，由短到長，難度符合學習者程度。
+只回傳 JSON：{"sentences":[{"text":"目標語言原文","tr":"繁中翻譯"}]}`,box,"寫聽寫句");
+      }
+      const ss=(d.sentences||[]).filter(x=>x.text);if(!ss.length)throw{code:"invalid_json"};
+      const toSec=ts=>String(ts||"0").split(":").reduce((a,x)=>a*60+(+x||0),0);
+      box.innerHTML=`<p class="note">${vid?"按 ▶ 會在 YouTube 跳到那一句（可能要往前一兩秒），聽完回來打字。":"每句可以重播多次，打完按「對答案」。"}</p>
+        ${ss.map((x,k)=>`<div class="sent"><div class="row"><span class="n">${k+1}</span>
+          ${vid?`<a class="say" href="${vid}&t=${Math.max(0,toSec(x.start)-1)}s" target="_blank" rel="noopener">▶ ${esc(x.start||"")}</a>`:`<button class="say" type="button" data-play="${k}">▶</button><button class="say" type="button" data-slow="${k}">慢</button>`}</div>
+          <input id="ds-${k}" autocomplete="off" placeholder="聽到什麼就打什麼">
+          <div class="row"><button class="btn ghost sm" type="button" data-chk="${k}">對答案</button></div>
+          <div class="diff" id="df-${k}"></div></div>`).join("")}
+        <div class="row"><span class="note" id="dsSum"></span></div>`;
+      const scores={};
+      box.onclick=e=>{const b=e.target.closest("[data-play],[data-slow],[data-chk],[data-addc]");if(!b)return;
+        if(b.dataset.play)return speak(ss[+b.dataset.play].text,lang);
+        if(b.dataset.slow)return speak(ss[+b.dataset.slow].text,lang,.65);
+        if(b.dataset.addc){addCards(p,s,t,[{front:ss[+b.dataset.addc].text,meaning:ss[+b.dataset.addc].tr}]);b.textContent="已加入";b.disabled=true;return}
+        const k=+b.dataset.chk,x=ss[k],r=diffTokens(x.text,$("ds-"+k).value);scores[k]=r.score;
+        $("df-"+k).innerHTML=`<div>${r.html}</div><div class="note">${r.score}% · ${esc(x.tr||"")}</div>${r.score<80?`<button class="btn ghost sm" type="button" data-addc="${k}">加入複習</button>`:""}`;
+        const v=Object.values(scores);$("dsSum").textContent=`已對 ${v.length}/${ss.length} 句，平均 ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)}%。底線是漏聽的字，刪除線是多打或聽錯的字。`;
+      };
+    }catch(err){if(err.msg){box.innerHTML=`<p class="err">${esc(err.msg)}</p>`;return}langFail(box,err,()=>LANG_TOOLS.listening(c,box))}
+  },
+  async speaking(c,box){
+    const{p,s,t}=c,lang=langOf(p);
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    try{
+      const d=await langJSON(`${langBase(p)}
+主題：「${t.title}」（重點：${t.points||"無"}）。給 6 句跟讀練習用的句子：生活中真的會說、節奏自然，由短到長。
+只回傳 JSON：{"sentences":[{"text":"目標語言原文","reading":"讀音或發音提示（沒有就空字串）","tr":"繁中翻譯","tip":"這句的發音重點（繁中，一句話）"}]}`,box,"挑跟讀句");
+      const ss=(d.sentences||[]).filter(x=>x.text);if(!ss.length)throw{code:"invalid_json"};
+      box.innerHTML=`${SR?"":`<p class="note">這個瀏覽器不支援語音辨識（Chrome、Edge、iPhone Safari 可以），先聽 → 跟唸 → 自己比較。</p>`}
+        ${ss.map((x,k)=>`<div class="sent"><div class="row"><span class="n">${k+1}</span><button class="say" type="button" data-play="${k}">▶</button><button class="say" type="button" data-slow="${k}">慢</button>${SR?`<button class="btn sm" type="button" data-rec="${k}">🎙 跟讀</button>`:""}</div>
+          <div style="font-size:17px">${esc(x.text)}</div>${x.reading?`<div class="note">${esc(x.reading)}</div>`:""}
+          <div class="note">${esc(x.tr||"")}${x.tip?` · 重點：${esc(x.tip)}`:""}</div><div class="diff" id="sp-${k}"></div></div>`).join("")}`;
+      let rec=null;
+      box.onclick=e=>{const b=e.target.closest("[data-play],[data-slow],[data-rec]");if(!b)return;
+        if(b.dataset.play)return speak(ss[+b.dataset.play].text,lang);
+        if(b.dataset.slow)return speak(ss[+b.dataset.slow].text,lang,.65);
+        const k=+b.dataset.rec,out=$("sp-"+k);
+        if(rec){rec.abort();rec=null}
+        speechSynthesis?.cancel();
+        rec=new SR();rec.lang=lang;rec.interimResults=false;rec.maxAlternatives=1;
+        out.innerHTML='<span class="thinking">請開始唸…</span>';b.disabled=true;
+        rec.onresult=ev=>{const said=ev.results[0][0].transcript,r=diffTokens(ss[k].text,said);
+          out.innerHTML=`<div>辨識到：${esc(said)}</div><div>${r.html}</div><div class="note">${r.score}%${r.score>=85?" · 很好":r.score>=60?" · 再唸一次，注意底線的字":" · 先按「慢」多聽幾次"}</div>`};
+        rec.onerror=ev=>{out.innerHTML=`<span class="err">${ev.error==="not-allowed"?"麥克風被拒絕，請在網址列允許麥克風。":ev.error==="no-speech"?"沒聽到聲音，再試一次。":"辨識失敗："+esc(ev.error)}</span>`};
+        rec.onend=()=>{b.disabled=false;rec=null};
+        rec.start();
+      };
+    }catch(err){langFail(box,err,()=>LANG_TOOLS.speaking(c,box))}
+  },
+  async writing(c,box){
+    const{p,s,t}=c,lang=langOf(p);
+    try{
+      const d=await langJSON(`${langBase(p)}
+主題：「${t.title}」（重點：${t.points||"無"}）。出一個短寫作題：貼近生活、符合程度（初學者 2–3 句，中級以上 80–150 字）。
+只回傳 JSON：{"task":"題目說明（繁中）","hints":["可以用的句型或單字（目標語言＋中文）"]}`,box,"出題");
+      box.innerHTML=`<div class="fb"><strong>${esc(d.task||"")}</strong>${(d.hints||[]).length?`<ul>${d.hints.map(h=>`<li>${esc(h)}</li>`).join("")}</ul>`:""}</div>
+        <textarea id="wrTxt" placeholder="用${esc(p.lang?.name||"目標語言")}寫…"></textarea>
+        <div class="row"><button class="btn" type="button" id="wrGo">批改</button></div><div id="wrOut" class="lang-tool"></div>`;
+      $("wrGo").onclick=async()=>{
+        const txt=$("wrTxt").value.trim();if(!txt)return;const out=$("wrOut");$("wrGo").disabled=true;
+        try{
+          const g=await langJSON(`${langBase(p)}
+寫作題：${d.task}
+學習者作文：
+<<<
+${txt}
+>>>
+請批改。只回傳 JSON：{"score":80,"praise":"做得好的地方（繁中一句）","corrected":"只修正錯誤、保留原意的版本","natural":"母語者會怎麼寫（更自然的版本）","issues":[{"orig":"錯誤片段","fix":"修正後","why":"繁中解釋文法或用法規則"}]}`,out,"批改");
+          const iss=(g.issues||[]).filter(x=>x.orig||x.fix);
+          out.innerHTML=`<div class="fb ${+g.score>=70?"good":"bad"}"><span class="verdict">${+g.score||0} 分</span><div>${esc(g.praise||"")}</div></div>
+            ${iss.length?`<div class="label">錯誤與原因</div><ul class="issues">${iss.map(x=>`<li><del>${esc(x.orig)}</del> → <ins>${esc(x.fix)}</ins><br>${esc(x.why)}</li>`).join("")}</ul>`:""}
+            <div class="label">修正版</div><div class="passage">${esc(g.corrected||"")}</div>
+            <div class="label">母語者寫法</div><div class="passage">${esc(g.natural||"")}</div>
+            <div class="row"><button class="btn ghost sm" type="button" id="wrPlay">▶ 朗讀母語者寫法</button>${iss.length?`<button class="btn ghost sm" type="button" id="wrAdd">把 ${iss.length} 個錯誤加入錯題本</button>`:""}</div>`;
+          $("wrPlay").onclick=()=>speak(g.natural||g.corrected,lang);
+          if($("wrAdd"))$("wrAdd").onclick=()=>{iss.forEach(x=>addMistake(p,s,t,{type:"short",q:`改正這個錯誤：${x.orig}`,answer:x.fix,explanation:x.why,concept:"寫作"},{userAnswer:x.orig,feedback:x.why}));
+            scheduleSave(p);renderSummary(p);$("wrAdd").textContent="已加入";$("wrAdd").disabled=true};
+        }catch(err){langFail(out,err,()=>$("wrGo").click())}
+        finally{$("wrGo").disabled=false}
+      };
+    }catch(err){langFail(box,err,()=>LANG_TOOLS.writing(c,box))}
+  }
+};
+
+/* ---------- 新目標：請 Claude 規劃 ---------- */
+let gCtl=null;
+$("newBtn").onclick=()=>{
+  const d=new Date(Date.now()+90*864e5);$("gDeadline").value=d.toISOString().slice(0,10);
+  $("gErr").hidden=true;pendingDiag=null;$("gQuiz").hidden=true;$("gQuiz").innerHTML="";syncGenType();
+  const ok=chain().length>0;
+  $("gStatus").textContent=ok?"":"還沒有可用的 AI，先到「AI 設定」加一個（Gemini、Groq 有免費額度）。";
+  $("gGo").disabled=!ok;$("dlg").showModal();
+};
+$("gEx").onclick=e=>{if(e.target.tagName==="BUTTON"){$("gGoal").value=e.target.textContent;$("gGoal").focus()}};
+$("gCancel").onclick=()=>{gCtl?.abort();$("dlg").close()};
+const isLang=()=>$("gTypeLang").checked;
+function syncGenType(){
+  const L=isLang();
+  $("gLangFields").hidden=!L;
+  $("gIntro").textContent=L
+    ?($("gLangLv").value==="zero"?"從零開始：先發音與文字，再用高頻句型、分級閱讀、聽寫、跟讀一步步累積，照著走就好。":"先做 12 題程度診斷（單字、文法、閱讀、聽力），再把時間集中在最弱的地方。")
+    :"AI 會把目標拆成模組與主題，估時數、標出最關鍵的 20%，並附上 YouTube 搜尋關鍵字與推薦課程。";
+  $("gGoal").placeholder=L?"例：能看懂日劇不靠字幕、商務英文會議聽得懂":"例：三個月內考過 TOEIC 850";
+  $("gGo").textContent=L&&$("gLangLv").value==="known"?"開始診斷":"規劃路線";
+}
+["gTypeSubj","gTypeLang","gLangLv"].forEach(id=>$(id).addEventListener("change",syncGenType));
+
+const MODES=Object.keys(MODE_NAME);
+function normPlan(data,{goal,hours,deadline,lang}){
+  const subjects=(Array.isArray(data?.subjects)?data.subjects:[]).map((s,si)=>({
+    name:String(s.name||`模組 ${si+1}`),en:String(s.en||""),
+    resources:(Array.isArray(s.resources)?s.resources:[]).slice(0,4).map(r=>({name:String(r.name||""),note:String(r.note||""),q:String(r.q||r.name||"")})).filter(r=>r.name),
+    topics:(Array.isArray(s.topics)?s.topics:[]).map((t,ti)=>({id:si+"-"+ti,title:String(t.title||""),hours:Math.max(1,Math.round(+t.hours||4)),points:String(t.points||""),hot:!!t.hot,q:String(t.q||""),
+      ...(lang?{mode:MODES.includes(t.mode)?t.mode:"lesson"}:{})})).filter(t=>t.title)
+  })).filter(s=>s.topics.length);
+  if(!subjects.length)throw{code:"invalid_json"};
+  const p={id:"p"+Date.now().toString(36),title:String(data.title||goal).slice(0,24),subtitle:String(data.subtitle||""),goal,
+    weeklyHours:hours,deadline,createdAt:Date.now(),done:{},subjects};
+  if(lang){lang.code=/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(data.langCode||"")?data.langCode:(lang.code||"en-US");p.lang=lang}
+  return p;
+}
+async function genPlan(prompt,meta,my){
+  let who="AI";
+  const r=await ask([{role:"user",content:prompt}],{signal:my.signal,nocache:true,
+    onTry:name=>{who=name.replace(/（.*）/,"");$("gStatus").textContent=`${who} 正在規劃路線，通常需要 30–90 秒…`},
+    onText:({text})=>{$("gStatus").textContent=`${who} 正在寫路線…已寫 ${text.length} 字`}});
+  if(gCtl!==my)return;
+  const p=normPlan(parseJSON(r.text),meta);
+  plans.push(p);curId=p.id;tab=0;store.save(p).catch(()=>{});render();
+  $("dlg").close();$("gGoal").value="";$("gLevel").value="";$("gStatus").textContent="";$("gQuiz").hidden=true;$("gQuiz").innerHTML="";
+}
+const LANG_PLAN_JSON=`只回傳 JSON：
+{"title":"6-10 字的目標名稱","subtitle":"一句話說明學習策略","langCode":"BCP-47 語言代碼，例如 ja-JP、en-US","subjects":[{"name":"模組名稱","en":"英文名稱（大寫）","resources":[{"name":"確定存在的知名頻道／教材","note":"10 字內推薦理由","q":"YouTube 搜尋關鍵字"}],"topics":[{"title":"主題","hours":3,"points":"重點一、重點二","hot":true,"q":"YouTube 搜尋關鍵字","mode":"reading"}]}]}
+mode 只能是：lesson（發音、文字、文法觀念：講義＋練習題）、vocab（主題單字卡）、reading（分級閱讀）、listening（聽寫）、speaking（跟讀）、writing（寫作批改）。
+模組 3-6 個，每個模組 5-10 個主題；每個模組都要混合多種 mode，lesson 不超過三分之一——語言是練出來的，不是讀講義讀出來的。`;
+
+let pendingDiag=null;
+$("genForm").onsubmit=async e=>{
+  e.preventDefault(); if(!chain().length)return;
+  if(pendingDiag&&isLang()){
+    gCtl?.abort();const my=gCtl=new AbortController();$("gGo").disabled=true;$("gErr").hidden=true;
+    $("gStatus").textContent="正在依診斷結果規劃路線，通常需要 30–90 秒…";
+    try{await genPlan(pendingDiag.prompt,pendingDiag.meta,my);pendingDiag=null}
+    catch(err){if(gCtl!==my||err.code==="cancelled")return;$("gErr").textContent=errText(err);$("gErr").hidden=false;$("gStatus").textContent=""}
+    finally{if(gCtl===my)$("gGo").disabled=false}
+    return;
+  }
+  const goal=$("gGoal").value.trim(); if(!goal)return;
+  const level=$("gLevel").value.trim()||"未說明", hours=Math.max(1,+$("gHours").value||10), deadline=$("gDeadline").value;
+  const weeks=deadline?Math.max(1,Math.round((new Date(deadline)-Date.now())/WEEK)):12;
+  if(isLang()){
+    const name=$("gLang").value.trim();
+    if(!name){$("gLang").focus();$("gErr").textContent="請填要學的語言。";$("gErr").hidden=false;return}
+    const zero=$("gLangLv").value==="zero";
+    const lang={name,code:LANG_CODE[name]||"",levelDesc:zero?"完全沒學過":level};
+    gCtl?.abort();const my=gCtl=new AbortController();
+    $("gGo").disabled=true;$("gErr").hidden=true;
+    const head=`你是頂尖的語言教學設計師。學習者母語是繁體中文，要學「${name}」。
+目標：${goal}
+每週可投入：${hours} 小時，約 ${weeks} 週（共約 ${hours*weeks} 小時）
+`;
+    try{
+      if(zero){
+        $("gStatus").textContent="正在設計從零開始的課程，通常需要 30–90 秒…";
+        await genPlan(head+`程度：完全沒學過。
+設計「從零到能用」最快的課程，依序：發音與文字系統 → 最高頻的句型與約 500 個高頻詞 → 大量可理解輸入（分級閱讀、聽寫）→ 輸出（跟讀、寫作）。每一小步學完就要立刻用（單字卡、聽寫、跟讀），不要連續好幾個講義。
+主題時數以 1–4 小時為單位，最後一個模組是綜合實戰（例如模擬對話、檢定題型）。
+${LANG_PLAN_JSON}`,{goal,hours,deadline,lang},my);
+        return;
+      }
+      $("gStatus").textContent="正在出程度診斷題…";
+      const r=await ask([{role:"user",content:`為「${name}」出一份程度診斷測驗。受測者母語繁體中文，自述程度：${level}；目標：${goal}。
+共 12 題，每個技能內由易到難（大約 CEFR A2 → C1），目的是找出弱項：
+- 4 題 skill "vocab"：單字與片語
+- 4 題 skill "grammar"：文法
+- 2 題 skill "reading"：q 內先放一段 60–120 字的目標語言短文，再問一個理解問題
+- 2 題 skill "listening"：listen 放一段要朗讀的目標語言句子或短對話（不要出現在 q 裡），q 用繁中問問題
+全部是四選一。只回傳 JSON：
+{"langCode":"BCP-47，例如 en-US","questions":[{"skill":"vocab","type":"choice","q":"題目","listen":"只有 listening 才有","options":["","","",""],"answer":0,"explanation":"繁中解析","concept":"等級，如 B1"}]}`}],
+        {signal:my.signal,nocache:true,onTry:n=>{$("gStatus").textContent=`${n.replace(/（.*）/,"")} 正在出程度診斷題，約 20–60 秒…`}});
+      if(gCtl!==my)return;
+      const raw=parseJSON(r.text);
+      if(/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(raw.langCode||""))lang.code=raw.langCode;
+      if(!lang.code)lang.code="en-US";
+      const src=(raw.questions||[]).filter(q=>q&&q.q);
+      const items=normQuestions({questions:src}).map((q,k)=>({...q,skill:SKILL_NAME[src[k]?.skill]?src[k].skill:"vocab",listen:src[k]?.listen?String(src[k].listen):""}))
+        .filter(q=>q.type==="choice");
+      if(items.length<6)throw{code:"invalid_json"};
+      $("gStatus").textContent="作答時不要查資料、不會就猜，結果才準。";
+      const tally={};
+      runQuiz($("gQuiz"),items,{prefix:"dg"+Date.now().toString(36),lang:lang.code,topicOf:()=>name+" 程度診斷",
+        doneNote:()=>"正在依結果規劃路線…",
+        onResult:(it,res)=>{const k=it.skill;tally[k]=tally[k]||{r:0,n:0,miss:[]};tally[k].n++;if(res.correct)tally[k].r++;else tally[k].miss.push(it.concept||"")},
+        onDone:async()=>{
+          lang.diag=Object.fromEntries(Object.entries(tally).map(([k,v])=>[k,Math.round(v.r/v.n*100)]));
+          const summary=Object.entries(tally).map(([k,v])=>`${SKILL_NAME[k]} ${v.r}/${v.n}${v.miss.length?`（答錯題等級：${v.miss.join("、")}）`:""}`).join("；");
+          $("gStatus").textContent="正在依診斷結果規劃路線，通常需要 30–90 秒…";
+          pendingDiag={prompt:head+`自述程度：${level}
+診斷結果：${summary}。口說與寫作未測，請從目標推估需求。
+請「專攻弱項」：最弱的技能分配 40% 以上時數，已經穩的技能只安排維持性練習，不要從頭教已經會的東西。
+第一個模組就要直接處理最大的弱點；主題時數以 1–4 小時為單位。
+${LANG_PLAN_JSON}`,meta:{goal,hours,deadline,lang}};
+          try{
+            await genPlan(pendingDiag.prompt,pendingDiag.meta,my);pendingDiag=null;
+          }catch(err){if(gCtl!==my||err.code==="cancelled")return;$("gErr").textContent=errText(err);$("gErr").hidden=false;$("gStatus").textContent="";$("gGo").disabled=false;$("gGo").textContent="用診斷結果重新規劃"}
+        }});
+      $("gGo").textContent="規劃路線";
+    }catch(err){
+      if(gCtl!==my||err.code==="cancelled")return;
+      $("gErr").textContent=errText(err);$("gErr").hidden=false;$("gStatus").textContent="";syncAi();$("gGo").disabled=!chain().length;
+    }
+    return;
+  }
+  const prompt=`你是頂尖的學習規劃教練。請為以下學習者設計「最快達成目標」的學習路線，用繁體中文。
+目標：${goal}
+目前程度：${level}
+每週可投入：${hours} 小時，距期限約 ${weeks} 週（總共約 ${hours*weeks} 小時）
+
+原則：依學習先後順序排列；標出最關鍵、最常考或最常用的約 20% 主題（hot: true）；時數要實際，總時數若超過可用時間，仍列完整路線但讓 hot 主題涵蓋核心；最後一個主題應是實戰（考古題、專案或模擬測驗）。
+resources 只列你確定真實存在的知名課程、YouTube 頻道或教科書，每個模組 2-3 個；q 是可以直接貼到 YouTube 搜尋的關鍵字。
+
+只回傳 JSON，格式：
+{"title":"6-10 字的目標名稱","subtitle":"一句話說明讀書策略","subjects":[{"name":"模組名稱","en":"英文名稱（大寫）","resources":[{"name":"資源名稱","note":"10 字內推薦理由","q":"YouTube 搜尋關鍵字"}],"topics":[{"title":"主題","hours":8,"points":"重點一、重點二、重點三","hot":true,"q":"YouTube 搜尋關鍵字"}]}]}
+模組 2-6 個，每個模組 4-10 個主題。`;
+  gCtl?.abort(); const my=gCtl=new AbortController();
+  $("gGo").disabled=true;$("gErr").hidden=true;$("gStatus").textContent="正在規劃路線，通常需要 30–90 秒…";
+  let who="AI";
+  try{
+    const r=await ask([{role:"user",content:prompt}],{signal:my.signal,nocache:true,
+      onTry:name=>{who=name.replace(/（.*）/,"");$("gStatus").textContent=`${who} 正在規劃路線，通常需要 30–90 秒…`},
+      onText:({text})=>{$("gStatus").textContent=`${who} 正在寫路線…已寫 ${text.length} 字`}});
+    const data=parseJSON(r.text);
+    const subjects=(Array.isArray(data?.subjects)?data.subjects:[]).map((s,si)=>({
+      name:String(s.name||`模組 ${si+1}`),en:String(s.en||""),
+      resources:(Array.isArray(s.resources)?s.resources:[]).slice(0,4).map(r=>({name:String(r.name||""),note:String(r.note||""),q:String(r.q||r.name||"")})).filter(r=>r.name),
+      topics:(Array.isArray(s.topics)?s.topics:[]).map((t,ti)=>({id:si+"-"+ti,title:String(t.title||""),hours:Math.max(1,Math.round(+t.hours||4)),points:String(t.points||""),hot:!!t.hot,q:String(t.q||"")})).filter(t=>t.title)
+    })).filter(s=>s.topics.length);
+    if(!subjects.length)throw{code:"invalid_json"};
+    const p={id:"p"+Date.now().toString(36),title:String(data.title||goal).slice(0,24),subtitle:String(data.subtitle||""),goal,
+      weeklyHours:hours,deadline,createdAt:Date.now(),done:{},subjects};
+    plans.push(p);curId=p.id;tab=0;store.save(p).catch(()=>{});render();
+    $("dlg").close();$("gGoal").value="";$("gLevel").value="";$("gStatus").textContent="";
+  }catch(err){
+    if(gCtl!==my||err.code==="cancelled")return;
+    $("gErr").textContent=errText(err);$("gErr").hidden=false;$("gStatus").textContent="";syncAi();
+  }finally{if(gCtl===my)$("gGo").disabled=!chain().length}
+};
+
+/* ---------- 備份／搬移 ---------- */
+const bakMsg=(t,bad)=>{$("bakMsg").textContent=t;$("bakMsg").className=bad?"err":"note"};
+const exportText=()=>JSON.stringify({app:"zixue",v:1,at:Date.now(),plans});
+const bakName=()=>`zixue-backup-${new Date().toISOString().slice(0,10)}.json`;
+$("bakBtn").onclick=()=>{
+  const inClaude=!!window.claude;
+  $("bakDown").hidden=inClaude;
+  $("bakShare").hidden=inClaude||!(navigator.canShare&&navigator.canShare({files:[new File(["{}"],"a.json",{type:"application/json"})]}));
+  $("bakTxt").value="";bakMsg("");$("bakDlg").showModal();
+};
+$("bakClose").onclick=()=>$("bakDlg").close();
+$("bakShare").onclick=async()=>{
+  try{await navigator.share({files:[new File([exportText()],bakName(),{type:"application/json"})],title:"自學航線備份"});bakMsg("已送出。到另一台裝置按「選擇備份檔」匯入。")}
+  catch(e){if(e.name!=="AbortError")bakMsg("分享失敗，改用「下載備份檔」或「複製成文字」。",true)}
+};
+$("bakDown").onclick=()=>{
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exportText()],{type:"application/json"}));a.download=bakName();
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+  bakMsg(`已下載 ${bakName()}。傳到另一台裝置（LINE、AirDrop、Email 都可以）後按「選擇備份檔」。`);
+};
+$("bakCopy").onclick=async()=>{
+  const t=exportText();
+  try{await navigator.clipboard.writeText(t);bakMsg(`已複製（${Math.round(t.length/1024)} KB）。貼到 LINE 傳給自己，再到另一台貼進下方框框匯入。`)}
+  catch{$("bakTxt").value=t;$("bakTxt").select();bakMsg("無法自動複製：文字已放進下方框框並選取，請手動複製。")}
+};
+async function importText(text){
+  let d;try{d=JSON.parse(String(text).trim())}catch{return bakMsg("看不懂這份資料，確認是完整的備份內容。",true)}
+  const list=(Array.isArray(d)?d:d?.plans||[]).filter(p=>p&&p.id&&Array.isArray(p.subjects));
+  if(!list.length)return bakMsg("備份裡沒有學習目標。",true);
+  const clash=list.filter(p=>plans.some(x=>x.id===p.id));
+  if(clash.length&&!confirm(`這台裝置上已有 ${clash.map(p=>"「"+p.title+"」").join("、")}，匯入會用備份的內容取代它們（其他目標不受影響）。確定？`))return;
+  for(const p of list){p.done=p.done||{};const i=plans.findIndex(x=>x.id===p.id);i<0?plans.push(p):plans[i]=p;await store.save(p).catch(()=>{})}
+  curId=list[0].id;tab=0;render();
+  bakMsg(`已匯入 ${list.length} 個目標${clash.length?`（取代 ${clash.length} 個）`:""}。`);
+}
+$("bakFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;await importText(await f.text());e.target.value=""};
+$("bakPaste").onclick=()=>{const t=$("bakTxt").value;if(!t.trim())return bakMsg("先把備份文字貼進框框。",true);importText(t)};
+
+/* ---------- 啟動 ---------- */
+(async function boot(){
+  plans=await localStore.list(); if(!plans.length)plans=[presetPlan()];
+  curId=ui.curId||plans[0].id; tab=ui.tab||0; render(); syncAi();
+  if(!window.claude?.use)return;
+  claude.use("sample").then(s=>{sample=s;syncAi()});
+  const db=await claude.use("db");
+  if(db){
+    try{
+      const remote=await dbStore(db).list();
+      store=dbStore(db);
+      if(remote.length){plans=remote;if(!plans.some(p=>p.id===curId)){curId=plans[0].id;tab=0}render()}
+    }catch{}
+  }
+})();
+
+if ('serviceWorker' in navigator && !window.claude && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW register fail:', e));
+  });
+}
+</script>
+</body>
+</html>
