@@ -775,7 +775,7 @@ function ready(id){
 const chain=()=>aiCfg.order.filter(ready);
 
 const ERR={rate_limited:"Claude 使用量暫時到上限",session_expired:"Claude 登入已過期",quota:"額度用完或太頻繁",
-  auth:"金鑰無效或沒有權限",server:"服務暫時異常",network:"連不上（網路或瀏覽器限制）",bad_request:"請求被拒，檢查模型名稱",
+  auth:"金鑰無效或沒有權限",server:"對方伺服器忙碌或異常（已自動重試 3 次）",network:"連不上（網路或瀏覽器限制）",bad_request:"請求被拒，檢查模型名稱",
   refused:"拒絕回答這個問題",invalid_json:"產生的路線格式不完整，再按一次「規劃路線」。",prompt_too_large:"內容太長",
   empty_completion:"沒有收到回答",no_provider:"還沒設定可用的 AI，按上方「AI 設定」加一個。",
   not_granted:"未允許使用 Claude",sampling_disabled:"帳號無法使用 Claude"};
@@ -820,9 +820,20 @@ async function callHttp(id,turns,o={}){
   else{url=base+"/chat/completions";body={model,stream:true,messages:turns};
     pick=d=>d.choices?.[0]?.delta?.content||""}
   let res;
-  try{res=await fetch(url,{method:"POST",headers,body:JSON.stringify(body),signal:o.signal})}
-  catch{throw{code:o.signal?.aborted?"cancelled":"network"}}
-  if(!res.ok)throw await httpErr(res);
+  for(let attempt=0;;attempt++){
+    try{res=await fetch(url,{method:"POST",headers,body:JSON.stringify(body),signal:o.signal})}
+    catch{throw{code:o.signal?.aborted?"cancelled":"network"}}
+    if(res.ok)break;
+    const err=await httpErr(res);
+    // 伺服器忙碌（5xx，例如 Gemini 免費版尖峰時段的 503）：等一下自動重試，最多再試 2 次
+    if(err.code==="server"&&attempt<2&&!o.signal?.aborted){
+      o.onRetry?.(attempt+1);
+      await new Promise(r=>setTimeout(r,attempt?5000:2000));
+      if(o.signal?.aborted)throw{code:"cancelled"};
+      continue;
+    }
+    throw err;
+  }
   let text="";
   try{await readSSE(res,d=>{const t=pick(d);if(t){text+=t;o.onText?.({text})}})}
   catch{throw{code:o.signal?.aborted?"cancelled":"network",text:text||undefined}}
@@ -902,9 +913,15 @@ async function autoSetup(id,st){
   for(const m of cands.slice(0,4)){
     c.model=m;saveAi();say("",`測試 ${m} 中…`);
     try{
-      const r=await callHttp(id,[{role:"user",content:"請用一句繁體中文（15 字內）打招呼。"}]);
+      const r=await callHttp(id,[{role:"user",content:"請用一句繁體中文（15 字內）打招呼。"}],{onRetry:n=>say("",`${m} 伺服器忙碌，第 ${n} 次重試中…`)});
       c.lastOk=Date.now();delete c.lastErr;delete c.lastErrCode;saveAi();say("ok",`✓ 可以用了（${m}）：「${r.text.trim().slice(0,24)}」`);return m;
     }catch(e){last=e;if(e.code==="auth")break}
+  }
+  if(last?.code==="server"||last?.code==="quota"){
+    // 金鑰是對的（模型清單拿得到），只是對方忙碌或額度暫時用完：保留設定，之後使用時會再試
+    c.model=cands[0];c.lastErr=(last.code==="server"?"金鑰正確，但伺服器目前忙碌":"金鑰正確，但額度暫時用完")+"，已先設定好；過幾分鐘再按「自動設定」確認"+(last.detail?`（${last.detail}）`:"");
+    c.lastErrCode=last.code;delete c.lastOk;saveAi();say("bad","⚠ "+c.lastErr);
+    throw last;
   }
   c.lastErr=errText(last);c.lastErrCode=last?.code;delete c.lastOk;saveAi();say("bad","✗ "+c.lastErr);
   throw last;
@@ -949,6 +966,7 @@ $("qGo").onclick=async()=>{
   try{await autoSetup("gemini",st);$("qKey").value=""}
   catch(err){
     st.className="prov-status bad";
+    if(err.code==="server"||err.code==="quota"){st.textContent="⚠ "+pc("gemini").lastErr;return}
     st.textContent="設定失敗："+errText(err)+(err.code==="auth"?"。確認金鑰有完整複製。":"")+(window.claude?"（在 Claude 網頁裡無法連到 Gemini，請改用 https://hank08102006.github.io/Study/）":"");
   }finally{btn.disabled=false;const keep=[st.className,st.textContent];renderProvs();st.className=keep[0];st.textContent=keep[1];syncAi()}
 };
